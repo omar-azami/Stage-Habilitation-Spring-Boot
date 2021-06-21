@@ -16,7 +16,7 @@ import org.telio.portail_societe.metier.interfaces.IModerateur;
 
 @RestController
 
-@RequestMapping("/user")
+@RequestMapping("/admin")
 public class HabilitationRest {
 
     @Autowired
@@ -122,6 +122,14 @@ public class HabilitationRest {
         return new ResponseEntity<>(iHabilitation.getAllSocietesSortBy(field),HttpStatus.OK);
     }
 
+    @GetMapping(value = {"/show/societe/id/{id}"})
+    public ResponseEntity <ResponseOutput <SocieteDTO> > searchSocieteByID ( @PathVariable(name = "id", required = true) Long id)
+    {
+        return new ResponseEntity<>(iHabilitation.searchSocieteByID(id),HttpStatus.OK);
+    }
+    
+    
+    
     @PostMapping("/add/application")
     public ResponseEntity <ResponseOutput <ApplicationDTO> > persist (@RequestBody ApplicationDTO applicationDTO)
     {
@@ -194,6 +202,13 @@ public class HabilitationRest {
     {
         return new ResponseEntity<>(iHabilitation.searchProfilByNom(nom), HttpStatus.OK);
     }
+    
+    @GetMapping("/show/profil/societe/id/{id}")
+    public ResponseEntity <ResponseOutput <ProfilDTO> > getProfilBySociete ( @PathVariable ("id") Long id)
+    {
+        return new ResponseEntity<>(iHabilitation.getProfilBySociete(id), HttpStatus.OK);
+    }
+    
 
     @GetMapping("/show/profil/id/{id}/{societe}")
     public ResponseEntity <ResponseOutput <ProfilDTO> > getProfilByID ( @PathVariable ("id") Long id, @PathVariable ("societe") Long societe)
@@ -267,7 +282,7 @@ public class HabilitationRest {
         return  new ResponseEntity<>(iHabilitation.update(key, typeEntiteDTO), HttpStatus.OK);
     }
     
-    @GetMapping(value = {"/show/type-entite"})
+    @GetMapping(value = {"/show/type-entite/{societeDTO}"})
     public ResponseEntity <ResponseOutput <TypeEntiteDTO> > getAllTypeEntiteSociete ( @RequestBody SocieteDTO societeDTO)
     {
         return new ResponseEntity<>(iHabilitation.getAllTypeEntitiesBySociete(societeDTO),HttpStatus.OK);
@@ -277,5 +292,30 @@ public class HabilitationRest {
     public ResponseEntity <ResponseOutput <TypeEntiteDTO> > getTypeEntitiesBySociete ( @PathVariable ("id") Long id)
     {
         return new ResponseEntity<>(iHabilitation.getTypeEntitiesBySociete(id), HttpStatus.OK);
+    }
+    
+    @GetMapping(value = {"/show/type-entite/all/{fieldName}", "/show/type-entite/all"})
+    public ResponseEntity <ResponseOutput <TypeEntiteDTO> > getAllTypeEntities ( @PathVariable(name = "fieldName", required = false) String fieldName)
+    {
+        String field = fieldName == null ? "nom": fieldName;
+        return new ResponseEntity<>(iHabilitation.getAllTypeEntitiesSortBy(field),HttpStatus.OK);
+    }
+    
+    
+    @DeleteMapping("/delete/type-entite/{id}/{societe}")
+    public ResponseEntity <ResponseOutput <TypeEntiteDTO> >  deleteTypeEntite ( @PathVariable("id") Long id, @PathVariable("societe") Long societe)
+    {
+    TypeEntiteID key = new TypeEntiteID();
+    key.setId(id);
+    key.setSociete(societe);
+    System.out.println("key  :"+key);
+    
+        return new ResponseEntity<>(iHabilitation.deleteTypeEntite(key), HttpStatus.OK);
+    }
+    
+    @GetMapping(value = {"/show/typeEntiteById/id/{id}"})
+    public ResponseEntity <ResponseOutput <TypeEntiteDTO> > getTypeEntitiesById ( @PathVariable(name = "id", required = true) Long id)
+    {
+        return new ResponseEntity<>(iHabilitation.getTypeEntitiesById(id),HttpStatus.OK);
     }
 }

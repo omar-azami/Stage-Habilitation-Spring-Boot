@@ -21,6 +21,7 @@ import org.telio.portail_societe.model.*;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @SpringBootApplication
@@ -191,8 +192,9 @@ public class StageHabilitationApplication implements CommandLineRunner {
 		SocieteDTO SocieteDTO = soConverter.toVo(societeRepository.findByCode("123666"));//		TypeEntite type = typeEntiteRepository.findByNom("DIRECTION GENERAL").get(0);
 		LocaliteDTO localiteDTO = localiteConverter.toVo(localiteRepository.findByNom("ALBANIA"));
 //		entiteRepository.save(new Entite("ab", "456", null, localiteConverter.toBo(localiteDTO), soConverter.toBo(SocieteDTO),type));
-//
-		TypeEntiteDTO entiteDTO = (TypeEntiteDTO) typeEntiteConverter.toVoList(typeEntiteRepository.findBySociete(societeConverter.toBo(SocieteDTO)));
+//    private List<T> collection;
+
+		List<TypeEntiteDTO> entiteDTO = typeEntiteConverter.toVoList(typeEntiteRepository.findBySociete(societeConverter.toBo(SocieteDTO)));
 		System.out.println("tttype : "+entiteDTO);
 		ProfilDTO profilDTO = profilConverter.toVo(profilRepository.findByNom("PROFIL JAVA").get(0));
 //

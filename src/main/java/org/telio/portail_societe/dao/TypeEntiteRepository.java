@@ -14,6 +14,7 @@ public interface TypeEntiteRepository extends JpaRepository <TypeEntite, TypeEnt
     List<TypeEntite> findByNom (String nom);
     List<TypeEntite> findByCode (String code);
     List<TypeEntite> findBySociete(Societe societe);
+    TypeEntite  findById(Long id);
     Boolean existsByNom (String nom);
     Boolean existsByCode (String code);
     @Query(value = "select * from type_entite te where te.id=:id and te.societe=:societe ",

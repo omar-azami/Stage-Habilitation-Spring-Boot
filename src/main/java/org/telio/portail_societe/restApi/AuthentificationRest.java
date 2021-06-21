@@ -66,6 +66,8 @@ public class AuthentificationRest {
         Utilisateur utilisateur =  utilisateurRepository.findByLogin(connexion.getLogin());
         currentUser.setTypeSociete(utilisateur.getSociete().getTypeSociete().getNom());
         currentUser.setSociete(utilisateur.getSociete().getNom());
+        currentUser.setSocietee(utilisateur.getSociete());
+        currentUser.setIdSociete(utilisateur.getSociete().getId());
         currentUser.setTypeEntite(utilisateur.getEntite().getTypeEntite().getNom());
         TypeEntite typeentitemere= utilisateur.getEntite().getTypeEntite().getTypeMere();
         if(typeentitemere!=null) {

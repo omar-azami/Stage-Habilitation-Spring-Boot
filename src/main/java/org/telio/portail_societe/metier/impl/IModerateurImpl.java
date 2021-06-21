@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.awt.desktop.PrintFilesEvent;
 import java.util.Arrays;
+import java.util.Date;
+
 import org.springframework.stereotype.Service;
 import org.telio.portail_societe.dao.EntiteRepository;
 import org.telio.portail_societe.dao.ProfilRepository;
@@ -46,35 +48,54 @@ public class IModerateurImpl implements IModerateur{
 	public ResponseOutput<SocieteDTO> fonctionAutomatique(Long id) {
 		// TODO Auto-generated method stub
 		ResponseOutput<SocieteDTO> fctAuto= new ResponseOutput<>();
-
+		
 		SocieteDTO wanted = iHabilitation.searchSocieteByID(id).getData();
+		
 		String nickname = "admin-" +wanted.getNom();
+		String nicknam = wanted.getNom();
 		String nickcode = "admin-" +wanted.getCode();
-		iHabilitation.persist(new TypeEntiteDTO(nickname, nickcode,null, wanted));
-		nickname=nickname.toUpperCase();
+		
+		TypeEntiteDTO typeEntiteDTO = new TypeEntiteDTO(nickname, nickcode,null, wanted);
+		typeEntiteDTO.setCreatedBy("SYSTEM");
+		typeEntiteDTO.setCreatedDate(new Date());
+		iHabilitation.persist(typeEntiteDTO);
+		
 		TypeEntiteDTO wantedType = iHabilitation.searchTypeEntiteByNom(nickname).getData();
-		iHabilitation.persist(new LocaliteDTO(nickname, "", ""));
+		
+		LocaliteDTO localiteDTO =new LocaliteDTO(nickname, "", "");
+		localiteDTO.setCreatedBy("SYSTEM");
+		localiteDTO.setCreatedDate(new Date());
+		iHabilitation.persist(localiteDTO);
+		
 		LocaliteDTO wantedLocalite = iHabilitation.searchLocaliteByNom(nickname).getData();	
-		System.out.println("wantedLocalite"+wantedLocalite);
-
-		iHabilitation.persist(new EntiteDTO(nickname, nickcode,null, wantedLocalite, wanted, wantedType));
+		
+		EntiteDTO entiteDTOo =new EntiteDTO(nickname, nickcode,null, wantedLocalite, wanted, wantedType);
+		entiteDTOo.setCreatedBy("SYSTEM");
+		entiteDTOo.setCreatedDate(new Date());
+		iHabilitation.persist(entiteDTOo);
+		
 		EntiteDTO entiteDTO = entiteConverter.toVo(entiteRepository.findByNom(nickname).get(0));
-//				iHabilitation.searchEntiteByNom(nickname).getData();
-		System.out.println("entiteDTO"+entiteDTO);
-
-		iHabilitation.persist(new ProfilDTO(nickname,wanted));
-//		 profilDTO = iHabilitation.searchProfilByNom(nickname).getData();
+		
+		ProfilDTO profilDTOo=new ProfilDTO(nickname,wanted);
+		profilDTOo.setCreatedBy("SYSTEM");
+		profilDTOo.setCreatedDate(new Date());
+		iHabilitation.persist(profilDTOo);
+		
 		 ProfilDTO profilDTO = profilConverter.toVo(profilRepository.findByNom(nickname).get(0));
-		System.out.println("profilDTO"+profilDTO);
-
-		System.out.print(profilDTO);
-		iHabilitation.persist(new ApplicationDTO(nickname,"",wanted));
+		 
+		ApplicationDTO aplicationDTO =new ApplicationDTO(nickname,"",wanted);
+		aplicationDTO.setCreatedBy("SYSTEM");
+		aplicationDTO.setCreatedDate(new Date());
+		iHabilitation.persist(aplicationDTO);
+		
 		RoleDTO admin = iUserService.searchRoleByLibele("ADMIN").getData();
-        nickname = nickname.replace(" ", "-");
+        nickname = nicknam.replace(" ", "-");
         nickname =  nickname + "@admin.com"  ;
-
-		iUserService.persist(new UtilisateurDTO("admin", "admin", nickname, "admin123456", "public", "",
-				wanted, entiteDTO, profilDTO, Arrays.asList(admin)));
+        UtilisateurDTO utilisateurDTO = new UtilisateurDTO("admin", "admin", nickname, "admin123456", "public", "",
+				wanted, entiteDTO, profilDTO, Arrays.asList(admin));
+        utilisateurDTO.setCreatedBy("SYSTEM");
+        utilisateurDTO.setCreatedDate(new Date());
+		iUserService.persist(utilisateurDTO);
 
 //		ApplicationDTO wantedApp = iHabilitation.searchApplicationByNom(nickname).getData();
 

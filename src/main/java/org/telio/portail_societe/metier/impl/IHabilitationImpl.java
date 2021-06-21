@@ -88,6 +88,9 @@ public class IHabilitationImpl implements IHabilitation {
 
     @Override
     public ResponseOutput<TypeSocieteDTO> update(Long id, TypeSocieteDTO typeSocieteDTO) {
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	typeSocieteDTO.setLastModifiedBy(authentication.getName());
+    	typeSocieteDTO.setLastModifedDate(new Date());
         ResponseOutput <TypeSocieteDTO> societeDTOResponseOutput = new ResponseOutput<>();
         societeDTOResponseOutput.setTypeOperation("PUT");
         TypeSocieteDTO typeSocieteDTO1 = typeSocieteConverter.toVo(typeSocieteRepository.findById(id).get());
@@ -282,6 +285,10 @@ public class IHabilitationImpl implements IHabilitation {
 
     @Override
     public ResponseOutput<SocieteDTO> persist(SocieteDTO societeDTO) {
+    	
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	societeDTO.setCreatedBy(authentication.getName());
+    	societeDTO.setCreatedDate(new Date());
         ResponseOutput <SocieteDTO> societeDTOResponseOutput = new ResponseOutput<>();
         societeDTOResponseOutput.setTypeOperation("POST");
         String message = ctrlSociete(societeDTO);
@@ -302,6 +309,9 @@ public class IHabilitationImpl implements IHabilitation {
 
     @Override
     public ResponseOutput<SocieteDTO> update(Long id, SocieteDTO societeDTO) {
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	societeDTO.setLastModifiedBy(authentication.getName());
+    	societeDTO.setLastModifedDate(new Date());
         ResponseOutput <SocieteDTO> societeDTOResponseOutput = new ResponseOutput<>();
         societeDTOResponseOutput.setTypeOperation("PATCH");
         if (societeRepository.existsById(id))
@@ -590,6 +600,9 @@ public class IHabilitationImpl implements IHabilitation {
 
     @Override
     public ResponseOutput<ApplicationDTO> persist(ApplicationDTO applicationDTO) {
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	applicationDTO.setCreatedBy(authentication.getName());
+    	applicationDTO.setCreatedDate(new Date());
         ResponseOutput <ApplicationDTO> applicationDTOResponseOutput = new ResponseOutput<>();
         applicationDTOResponseOutput.setTypeOperation("POST");
         applicationRepository.save(applicationConverter.toBo(applicationDTO));
@@ -601,6 +614,9 @@ public class IHabilitationImpl implements IHabilitation {
 
     @Override
     public ResponseOutput<ApplicationDTO> update(ApplicationID applicationID, ApplicationDTO applicationDTO) {
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	applicationDTO.setCreatedBy(authentication.getName());
+    	applicationDTO.setCreatedDate(new Date());
         ResponseOutput <ApplicationDTO> applicationDTOResponseOutput = new ResponseOutput<>();
         applicationDTOResponseOutput.setTypeOperation("PATCH | PUT");
         if (applicationRepository.existsById(applicationID))
@@ -712,6 +728,9 @@ public class IHabilitationImpl implements IHabilitation {
 
     @Override
     public ResponseOutput<ProfilDTO> persist(ProfilDTO profilDTO) {
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	profilDTO.setCreatedBy(authentication.getName());
+    	profilDTO.setCreatedDate(new Date());
         ResponseOutput <ProfilDTO> profilDTOResponseOutput = new ResponseOutput<>();
         profilDTOResponseOutput.setTypeOperation("POST");
 
@@ -740,13 +759,16 @@ public class IHabilitationImpl implements IHabilitation {
 
     @Override
     public ResponseOutput<ProfilDTO> update(ProfilID profilID, ProfilDTO profilDTO) {
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	profilDTO.setLastModifiedBy(authentication.getName());
+    	profilDTO.setLastModifedDate(new Date());
         ResponseOutput <ProfilDTO> profilDTOResponseOutput = new ResponseOutput<>();
         profilDTOResponseOutput.setTypeOperation("PATCH");
         if(profilRepository.existsById(profilID))
         {
             ProfilDTO wanted  = profilConverter.toVo(profilRepository.findById(profilID).get());
             System.out.println("ID : "+ wanted.getNom());
-            if (wanted.getNom().equalsIgnoreCase(profilDTO.getNom()) && profilID.getSociete() == wanted.getSocieteDTO().getId())
+            if (wanted.getNom().equals(profilDTO.getNom()) && profilID.getSociete() == wanted.getSocieteDTO().getId())
             {
                 profilDTOResponseOutput.setCode("300");
                 profilDTOResponseOutput.setStatut("WARNING");
@@ -754,7 +776,25 @@ public class IHabilitationImpl implements IHabilitation {
                 profilDTOResponseOutput.setData(wanted);
                 return profilDTOResponseOutput;
             }
-            profilDTO.setId(profilID.getId());
+            
+            
+            
+           	 for ( ProfilDTO profilDTO1 : profilConverter.toVoList(profilRepository.findAll()))
+           	 {
+           		 if (profilDTO1.getSocieteDTO().getId() == profilID.getSociete() && profilDTO.getNom().equals(profilDTO1.getNom()))
+           		 {
+           			 System.out.println("Ce profil est deja enregestre");
+                     profilDTOResponseOutput.setCode("300");
+                     profilDTOResponseOutput.setStatut("WARNING");
+                     profilDTOResponseOutput.setMessage("Ce profil est deja enregestrer  ");
+                        return  profilDTOResponseOutput;
+           		 }
+           		 
+           	 }
+           	
+           	 
+           	 
+                        profilDTO.setId(profilID.getId());
             profilDTO.setSocieteDTO(societeConverter.toVo(societeRepository.findById(profilID.getSociete()).get()));
             profilRepository.save(profilConverter.toBo(profilDTO));
             profilDTOResponseOutput.setCode("200");
@@ -771,23 +811,37 @@ public class IHabilitationImpl implements IHabilitation {
 
     @Override
     public ResponseOutput<ProfilDTO> deleteProfil(ProfilID profilID) {
-        ResponseOutput <ProfilDTO> profilDTOResponseOutput = new ResponseOutput<>();
+      ResponseOutput <ProfilDTO> profilDTOResponseOutput = new ResponseOutput<>();
         profilDTOResponseOutput.setTypeOperation("DELETE");
-        if (profilRepository.existsById(profilID))
-        {
-            profilDTOResponseOutput.setCode("200");
-            profilDTOResponseOutput.setStatut("SUCCES");
-            profilDTOResponseOutput.setMessage(" Le profil a été supprimé ! ");
-            profilRepository.deleteById(profilID);
-        }
-        else
-        {
-            profilDTOResponseOutput.setCode("500");
-            profilDTOResponseOutput.setStatut("NOT FOUND");
-            profilDTOResponseOutput.setMessage("Le profil que vous voulez supprimé ne figure pas dans notre liste des profils ");
-
-        }
-        return profilDTOResponseOutput;
+        // 
+         if(profilRepository.existsById(profilID))
+         {
+        	 for (UtilisateurDTO utilisarueDTO : utilisateurConverter.toVoList(utilisateurRepository.findAll()))
+        	 {
+        		 if (utilisarueDTO.getProfilDTO().getId() == profilID.getId())
+        		 {
+        			 profilDTOResponseOutput.setCode("300");
+        			 profilDTOResponseOutput.setStatut("WARNING");
+        			 profilDTOResponseOutput.setMessage("Le profil n'a pas été supprimé ,Veuillez suprrimer les Utilisateurs ayant ce type  ");
+                     return profilDTOResponseOutput;
+        		 }
+        		 
+        	 }
+        	 profilDTOResponseOutput.setCode("200");
+             profilDTOResponseOutput.setStatut("SUCCES");
+             profilDTOResponseOutput.setMessage(" Le profil a été supprimé ! ");
+             profilRepository.deleteById(profilID);
+             return profilDTOResponseOutput;
+        	 
+        	 
+         }
+         else {
+        	 // element not found 
+        	 profilDTOResponseOutput.setCode("500");
+        	 profilDTOResponseOutput.setStatut("NOT FOUND");
+             profilDTOResponseOutput.setMessage("Le profil que vous voulez supprimé ne figure pas dans notre liste des profils ");
+             return profilDTOResponseOutput;
+         }
     }
 
     @Override
@@ -811,6 +865,18 @@ public class IHabilitationImpl implements IHabilitation {
         }
         return profilDTOResponseOutput;
     }
+    
+    @Override
+    public ResponseOutput<ProfilDTO> getProfilBySociete(Long id) {
+        SocieteDTO societeDTO = societeConverter.toVo(societeRepository.findById(id).get());
+        ResponseOutput <ProfilDTO> typeEntiteDTOResponseOutput = new ResponseOutput<>();
+        typeEntiteDTOResponseOutput.setTypeOperation("GET");
+
+        typeEntiteDTOResponseOutput.setCollection(profilConverter.toVoList(profilRepository.findBySociete(societeConverter.toBo(societeDTO))));
+        return typeEntiteDTOResponseOutput;
+
+    }
+    
 
     @Override
     public ResponseOutput<ProfilDTO> searchProfilByID(Long id, Long societe) {
@@ -858,6 +924,9 @@ public class IHabilitationImpl implements IHabilitation {
 
     @Override
     public ResponseOutput<LocaliteDTO> persist(LocaliteDTO localiteDTO) {
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	localiteDTO.setCreatedBy(authentication.getName());
+    	localiteDTO.setCreatedDate(new Date());
         ResponseOutput <LocaliteDTO> localiteDTOResponseOutput = new ResponseOutput<>();
         localiteDTOResponseOutput.setTypeOperation("POST");
         if(localiteRepository.existsByNom(localiteDTO.getNom()))
@@ -868,10 +937,10 @@ public class IHabilitationImpl implements IHabilitation {
         }
         else
         {
+            localiteRepository.save(localiteConverter.toBo(localiteDTO));
             localiteDTOResponseOutput.setCode("200");
             localiteDTOResponseOutput.setStatut("SUCCES");
             localiteDTOResponseOutput.setMessage(" Localité ajouté !");
-            localiteRepository.save(localiteConverter.toBo(localiteDTO));
 
         }
         return localiteDTOResponseOutput;
@@ -879,40 +948,54 @@ public class IHabilitationImpl implements IHabilitation {
 
     @Override
     public ResponseOutput<LocaliteDTO> update(Long id, LocaliteDTO localiteDTO) {
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	localiteDTO.setLastModifiedBy(authentication.getName());
+    	localiteDTO.setLastModifedDate(new Date());
         ResponseOutput <LocaliteDTO> localiteDTOResponseOutput = new ResponseOutput<>();
         localiteDTOResponseOutput.setTypeOperation("PATCH");
+        LocaliteDTO wanted = localiteConverter.toVo(localiteRepository.findById(id).get());
+
         if(localiteRepository.existsById(id))
         {
-            LocaliteDTO wanted = localiteConverter.toVo(localiteRepository.findById(id).get());
-            if(wanted.getNom().equalsIgnoreCase(localiteDTO.getNom())
-                    && wanted.getCode().equalsIgnoreCase(localiteDTO.getCode())
-                    && wanted.getNomAbrege().equalsIgnoreCase(localiteDTO.getNomAbrege()))
+            if(wanted.getNom().equals(localiteDTO.getNom())
+                    && wanted.getCode().equals(localiteDTO.getCode())
+                    && wanted.getNomAbrege().equals(localiteDTO.getNomAbrege()))
             {
                 localiteDTOResponseOutput.setCode("300");
                 localiteDTOResponseOutput.setStatut("WARNING");
                 localiteDTOResponseOutput.setMessage(" Vous n'avez rien changer au niveau de la localité ");
                 return localiteDTOResponseOutput;
             }
-
-            if (localiteRepository.existsByNom(localiteDTO.getNom()) ||
-                localiteRepository.existsByCode(localiteDTO.getCode()) ||
-                localiteRepository.existsByNomAbrege(localiteDTO.getNomAbrege()))
+            if (localiteRepository.existsByNom(localiteDTO.getNom()))
             {
+                if(wanted.getNom().equals(localiteDTO.getNom())){
+                	localiteDTO.setId(id);
+                    localiteRepository.save(localiteConverter.toBo(localiteDTO));
+                    localiteDTOResponseOutput.setCode("200");
+                    localiteDTOResponseOutput.setStatut("SUCCES");
+                    localiteDTOResponseOutput.setMessage("Localité ajouté ! ");
+                    return localiteDTOResponseOutput;
+
+               
+            }else
+            {
+                
                 localiteDTOResponseOutput.setCode("404");
                 localiteDTOResponseOutput.setStatut("ERROR");
                 localiteDTOResponseOutput.setMessage("Cet Localité est déjà insérer dans notre base ");
                 return localiteDTOResponseOutput;
-            }
-            else
-            {
-                localiteDTO.setId(id);
-                localiteRepository.save(localiteConverter.toBo(localiteDTO));
-                localiteDTOResponseOutput.setCode("200");
-                localiteDTOResponseOutput.setStatut("SUCCES");
-                localiteDTOResponseOutput.setMessage("Localité ajouté ! ");
-                return localiteDTOResponseOutput;
 
             }
+
+            }
+            
+            localiteDTO.setId(id);
+            localiteRepository.save(localiteConverter.toBo(localiteDTO));
+            localiteDTOResponseOutput.setCode("200");
+            localiteDTOResponseOutput.setStatut("SUCCES");
+            localiteDTOResponseOutput.setMessage("Localité ajouté ! ");
+            return localiteDTOResponseOutput;
+
 
         }
         else
@@ -928,20 +1011,36 @@ public class IHabilitationImpl implements IHabilitation {
     public ResponseOutput<LocaliteDTO> deleteLocalite(Long id) {
         ResponseOutput <LocaliteDTO> localiteDTOResponseOutput = new ResponseOutput<>();
         localiteDTOResponseOutput.setTypeOperation("DELETE");
+
         if(localiteRepository.existsById(id))
-        {
-            localiteDTOResponseOutput.setCode("200");
-            localiteDTOResponseOutput.setStatut("SUCCES");
-            localiteDTOResponseOutput.setMessage(" Localité supprimé ! ");
-            localiteRepository.deleteById(id);
+         {
+        	Long a;
+        	 for (EntiteDTO entiteDTO : entiteConverter.toVoList(entiteRepository.findAll()))
+        	 {
+        		 a = entiteDTO.getLocaliteDTO().getId();
+        		 System.out.println(" -- ");
+        		 if (a == id)
+        		 {
+        			 localiteDTOResponseOutput.setCode("300");
+        			 localiteDTOResponseOutput.setStatut("WARNING");
+                     localiteDTOResponseOutput.setMessage("L entite n'a pas été supprimé ,Veuillez suprrimer les societes ayant ce type  ");
+                     return localiteDTOResponseOutput;
+        		 }
+        		 
+        	 }
+        	 localiteRepository.deleteById(id);
+        	 localiteDTOResponseOutput.setCode("500");
+        	 localiteDTOResponseOutput.setStatut("SUCCESS");
+        	 localiteDTOResponseOutput.setMessage("Le type de societe a ete bien supprime");
+             return localiteDTOResponseOutput;
+          }
+        else {
+       	 // element not found 
+        	localiteDTOResponseOutput.setCode("500");
+	       	localiteDTOResponseOutput.setStatut("NOT FOUND");
+	       	localiteDTOResponseOutput.setMessage("Localite chercher est introuvable");
+            return localiteDTOResponseOutput;
         }
-        else
-        {
-            localiteDTOResponseOutput.setCode("500");
-            localiteDTOResponseOutput.setStatut("NO DATA FOUND ");
-            localiteDTOResponseOutput.setMessage(" La localité n'a pas été supprimé ! ");
-        }
-        return localiteDTOResponseOutput;
     }
 
     @Override
@@ -1032,6 +1131,9 @@ public class IHabilitationImpl implements IHabilitation {
 
     @Override
     public ResponseOutput<TypeEntiteDTO> persist(TypeEntiteDTO typeEntiteDTO) {
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	typeEntiteDTO.setCreatedBy(authentication.getName());
+    	typeEntiteDTO.setCreatedDate(new Date());
         ResponseOutput <TypeEntiteDTO> typeEntiteDTOResponseOutput = new ResponseOutput<>();
         typeEntiteDTOResponseOutput.setTypeOperation("POST");
         if (typeEntiteRepository.existsByNom(typeEntiteDTO.getNom().toUpperCase()) ||
@@ -1053,15 +1155,18 @@ public class IHabilitationImpl implements IHabilitation {
 
     @Override
     public ResponseOutput<TypeEntiteDTO> update(TypeEntiteID typeEntiteID, TypeEntiteDTO typeEntiteDTO) {
-        ResponseOutput <TypeEntiteDTO> typeEntiteDTOResponseOutput = new ResponseOutput<>();
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	typeEntiteDTO.setLastModifiedBy(authentication.getName());
+    	typeEntiteDTO.setLastModifedDate(new Date());
+    	ResponseOutput <TypeEntiteDTO> typeEntiteDTOResponseOutput = new ResponseOutput<>();
         typeEntiteDTOResponseOutput.setTypeOperation("PATCH");
         // SAME OBJECT
         if(typeEntiteRepository.existsById(typeEntiteID))
         {
             // same object
             TypeEntiteDTO wanted = typeEntiteConverter.toVo(typeEntiteRepository.findById(typeEntiteID).get());
-            if(wanted.getNom().equalsIgnoreCase(typeEntiteDTO.getNom()) &&
-               wanted.getCode().equalsIgnoreCase(typeEntiteDTO.getCode()) &&
+            if(wanted.getNom().equals(typeEntiteDTO.getNom()) &&
+               wanted.getCode().equals(typeEntiteDTO.getCode()) &&
                wanted.getSocieteDTO().getId() == typeEntiteDTO.getSocieteDTO().getId())
             {
                 typeEntiteDTOResponseOutput.setCode("300");
@@ -1075,14 +1180,14 @@ public class IHabilitationImpl implements IHabilitation {
                 if (typeEntiteDTO1.getSocieteDTO().getId() == typeEntiteDTO.getSocieteDTO().getId() &&
                     typeEntiteDTO1.getId() != typeEntiteID.getId())
                 {
-                    if(typeEntiteDTO1.getNom().equalsIgnoreCase(typeEntiteDTO.getNom()))
+                    if(typeEntiteDTO1.getNom().equals(typeEntiteDTO.getNom()))
                     {
                      typeEntiteDTOResponseOutput.setCode("404");
                      typeEntiteDTOResponseOutput.setStatut("ERROR");
                      typeEntiteDTOResponseOutput.setMessage(" Ce nom est déja utiliser pour cette societe ");
                      return typeEntiteDTOResponseOutput;
                     }
-                    if(typeEntiteDTO1.getCode().equalsIgnoreCase(typeEntiteDTO.getCode()))
+                    if(typeEntiteDTO1.getCode().equals(typeEntiteDTO.getCode()))
                     {
                         typeEntiteDTOResponseOutput.setCode("404");
                         typeEntiteDTOResponseOutput.setStatut("ERROR");
@@ -1111,22 +1216,59 @@ public class IHabilitationImpl implements IHabilitation {
 
     @Override
     public ResponseOutput<TypeEntiteDTO> deleteTypeEntite(TypeEntiteID typeEntiteID) {
+       
+        
         ResponseOutput <TypeEntiteDTO> typeEntiteDTOResponseOutput = new ResponseOutput<>();
         typeEntiteDTOResponseOutput.setTypeOperation("DELETE");
         if(typeEntiteRepository.existsById(typeEntiteID))
         {
-            typeEntiteDTOResponseOutput.setCode("200");
-            typeEntiteDTOResponseOutput.setStatut("SUCCES");
-            typeEntiteDTOResponseOutput.setMessage(" Le type a été bien supprimer");
-            typeEntiteRepository.deleteById(typeEntiteID);
-        }
-        else
-        {
-            typeEntiteDTOResponseOutput.setCode("500");
-            typeEntiteDTOResponseOutput.setStatut("NOT FOUND");
-            typeEntiteDTOResponseOutput.setMessage("Aucun element n'est supprimé");
-        }
+	        for (TypeEntiteDTO typeEntiteDTO : typeEntiteConverter.toVoList(typeEntiteRepository.findAll()))
+	   	 		{
+			   		 if (typeEntiteDTO.getTypeEntiteMereDTO() != null)
+			   		 {
+				   		 if (typeEntiteDTO.getTypeEntiteMereDTO().getId() != null)
+				   		 {
+			   			 
+				   		 if (typeEntiteDTO.getTypeEntiteMereDTO().getId() == typeEntiteID.getId()) {
+
+				   			typeEntiteDTOResponseOutput.setCode("300");
+				   			typeEntiteDTOResponseOutput.setStatut("WARNING");
+				   			typeEntiteDTOResponseOutput.setMessage("Le Type Entite n'a pas été supprimé ,Veuillez suprrimer les types entites fils ayant ce type  ");
+			                return typeEntiteDTOResponseOutput;
+				   		 }
+			   		 }
+			   		 }
+	   		 
+	   	 		}
+        
+        
+	        for (EntiteDTO entiteDTO : entiteConverter.toVoList(entiteRepository.findAll()))
+	     	 	{
+		     		 if (entiteDTO.getTypeEntiteDTO().getId() != null)
+		     		 {
+		     			if (entiteDTO.getTypeEntiteDTO().getId() == typeEntiteID.getId())
+			     		 {
+		     				typeEntiteDTOResponseOutput.setCode("300");
+		     				typeEntiteDTOResponseOutput.setStatut("WARNING");
+		     				typeEntiteDTOResponseOutput.setMessage("La societe n'a pas été supprimé ,Veuillez suprrimer les entites ayant ce type  ");
+		                  return typeEntiteDTOResponseOutput;}
+		     		 }
+		     		 
+		     	 } 
+      
+	        typeEntiteRepository.deleteById(typeEntiteID);
+	        typeEntiteDTOResponseOutput.setStatut("SUCCES");
+	        typeEntiteDTOResponseOutput.setCode("200");
+	        typeEntiteDTOResponseOutput.setMessage("Le Type Entite a été supprimé ! ");
+	        return typeEntiteDTOResponseOutput;
+	         }
+        typeEntiteDTOResponseOutput.setCode("500");
+        typeEntiteDTOResponseOutput.setStatut("NOT FOUND");
+        typeEntiteDTOResponseOutput.setMessage("Lae de societe chercher est introuvable");
         return typeEntiteDTOResponseOutput;
+	        
+	         
+       
     }
 
     @Override
@@ -1145,7 +1287,27 @@ public class IHabilitationImpl implements IHabilitation {
         return typeEntiteDTOResponseOutput;
     }
    
+    @Override
+	public ResponseOutput<TypeEntiteDTO> getAllTypeEntitiesBySociete(SocieteDTO societeDTO) {
+		ResponseOutput <TypeEntiteDTO> typeEntiteDTOResponseOutput = new ResponseOutput<>();
+        typeEntiteDTOResponseOutput.setTypeOperation("GET");
+
+        typeEntiteDTOResponseOutput.setCollection(typeEntiteConverter.toVoList(typeEntiteRepository.findBySociete(societeConverter.toBo(societeDTO))));
+        return typeEntiteDTOResponseOutput;
+	}
+	
+	 @Override
+	    public ResponseOutput<TypeEntiteDTO> getTypeEntitiesBySociete(Long id) {
+	        SocieteDTO societeDTO = societeConverter.toVo(societeRepository.findById(id).get());
+	        ResponseOutput <TypeEntiteDTO> typeEntiteDTOResponseOutput = new ResponseOutput<>();
+	        typeEntiteDTOResponseOutput.setTypeOperation("GET");
+
+	        typeEntiteDTOResponseOutput.setCollection(typeEntiteConverter.toVoList(typeEntiteRepository.findBySociete(societeConverter.toBo(societeDTO))));
+	        return typeEntiteDTOResponseOutput;
+
+	    }
     
+	 
     @Override
     public ResponseOutput<TypeEntiteDTO> searchTypeEntiteByID(Long id, Long societe) {
     	ResponseOutput <TypeEntiteDTO> typeEntiteDTOResponseOutput = new ResponseOutput<>();
@@ -1154,15 +1316,14 @@ public class IHabilitationImpl implements IHabilitation {
         return typeEntiteDTOResponseOutput;
     }
 
-    @Override
-    public ResponseOutput<TypeEntiteDTO> getTypeEntitiesBySociete(Long id) {
-    	ResponseOutput <TypeEntiteDTO> typeEntiteDTOResponseOutput = new ResponseOutput<>();
-        typeEntiteDTOResponseOutput.setTypeOperation("GET");
-        typeEntiteDTOResponseOutput.setData(typeEntiteConverter.toVo(typeEntiteRepository.rechercheBysociete(id)));
-        return typeEntiteDTOResponseOutput;
-    }
+	 @Override
+	    public ResponseOutput<TypeEntiteDTO> getTypeEntitiesById(Long id) {
+	    	ResponseOutput <TypeEntiteDTO> typeEntiteDTOResponseOutput = new ResponseOutput<>();
+	        typeEntiteDTOResponseOutput.setTypeOperation("GET");
+	        typeEntiteDTOResponseOutput.setData(typeEntiteConverter.toVo(typeEntiteRepository.findById(id)));
+	        return typeEntiteDTOResponseOutput;
+	    }
 
-    
     @Override
     public ResponseOutput<TypeEntiteDTO> searchTypeEntiteMere() {
         return null;
@@ -1170,9 +1331,49 @@ public class IHabilitationImpl implements IHabilitation {
 
     @Override
     public ResponseOutput<TypeEntiteDTO> getAllTypeEntitiesSortBy(String fieldName) {
-        return null;
+    	ResponseOutput <TypeEntiteDTO> typeEntiteDTOResponseOutput = new ResponseOutput<>();
+    	typeEntiteDTOResponseOutput.setTypeOperation("GET");
+        List<TypeEntiteDTO> typeEntiteDTO = typeEntiteConverter.toVoList(typeEntiteRepository.findAll(Sort.by(fieldName)));
+        if( typeEntiteDTO.size() !=0 )
+        {
+        	typeEntiteDTOResponseOutput.setCode("200");
+        	typeEntiteDTOResponseOutput.setStatut("SUCCES");
+        	typeEntiteDTOResponseOutput.setMessage("Operation Effectué !");
+        	typeEntiteDTOResponseOutput.setCollection(typeEntiteDTO);
+
+        }
+        else
+        {
+        	typeEntiteDTOResponseOutput.setCode("500");
+        	typeEntiteDTOResponseOutput.setStatut("NOT FOUND");
+        	typeEntiteDTOResponseOutput.setMessage("Operation Effectué !");
+        }
+        return typeEntiteDTOResponseOutput;
     }
 
+    @Override
+    public ResponseOutput<TypeEntiteDTO> getAllTypeEntities() {
+    	ResponseOutput <TypeEntiteDTO> typeEntiteDTOResponseOutput = new ResponseOutput<>();
+    	typeEntiteDTOResponseOutput.setTypeOperation("GET");
+        List<TypeEntiteDTO> typeEntiteDTO = typeEntiteConverter.toVoList(typeEntiteRepository.findAll());
+        if( typeEntiteDTO.size() !=0 )
+        {
+        	typeEntiteDTOResponseOutput.setCode("200");
+        	typeEntiteDTOResponseOutput.setStatut("SUCCES");
+        	typeEntiteDTOResponseOutput.setMessage("Operation Effectué !");
+        	typeEntiteDTOResponseOutput.setCollection(typeEntiteDTO);
+
+        }
+        else
+        {
+        	typeEntiteDTOResponseOutput.setCode("500");
+        	typeEntiteDTOResponseOutput.setStatut("NOT FOUND");
+        	typeEntiteDTOResponseOutput.setMessage("Operation Effectué !");
+        }
+        return typeEntiteDTOResponseOutput;
+    }
+
+    
     @Override
    	public String ctrlEntite(EntiteDTO entiteDTO) {
        	if(entiteRepository.existsByNom(entiteDTO.getNom())&&entiteRepository.existsBySociete(entiteDTO.getSocieteDTO().getId())) return "L'entite est déjà saisie dans la base de données";
@@ -1181,6 +1382,9 @@ public class IHabilitationImpl implements IHabilitation {
        
        @Override
        public ResponseOutput<EntiteDTO> persist(EntiteDTO entiteDTO) {
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+       	entiteDTO.setCreatedBy(authentication.getName());
+       	entiteDTO.setCreatedDate(new Date());
        	ResponseOutput <EntiteDTO> entiteDTOResponseOutput = new ResponseOutput<>();
        	entiteDTOResponseOutput.setTypeOperation("POST");
            String message = ctrlEntite(entiteDTO);
@@ -1300,13 +1504,7 @@ public class IHabilitationImpl implements IHabilitation {
         return null;
     }
 
-	@Override
-	public ResponseOutput<TypeEntiteDTO> getAllTypeEntitiesBySociete(SocieteDTO societeDTO) {
-		ResponseOutput <TypeEntiteDTO> typeEntiteDTOResponseOutput = new ResponseOutput<>();
-        typeEntiteDTOResponseOutput.setTypeOperation("GET");
-        typeEntiteDTOResponseOutput.setCollection(typeEntiteConverter.toVoList(typeEntiteRepository.findBySociete(societeConverter.toBo(societeDTO))));
-        return typeEntiteDTOResponseOutput;
-	}
+	
 
 	 
 }

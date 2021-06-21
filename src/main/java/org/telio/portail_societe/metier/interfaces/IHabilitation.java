@@ -51,6 +51,8 @@ public interface IHabilitation {
     ResponseOutput <ProfilDTO> searchProfilByNom (String nom);
     ResponseOutput <ProfilDTO> searchProfilByID (Long id, Long societe);
     ResponseOutput <ProfilDTO> getAllProfilsSortBy (String fieldName);
+    ResponseOutput <ProfilDTO> getProfilBySociete(Long id) ;
+
 
     /*=========================================================================*/
 
@@ -76,9 +78,11 @@ public interface IHabilitation {
     ResponseOutput <TypeEntiteDTO> searchTypeEntiteByID (Long id, Long societe);
     ResponseOutput <TypeEntiteDTO> searchTypeEntiteMere ();
     ResponseOutput <TypeEntiteDTO> getAllTypeEntitiesSortBy (String fieldName);
+    ResponseOutput <TypeEntiteDTO> getAllTypeEntities ();
 	String ctrlEntite(EntiteDTO entiteDTO);
     ResponseOutput <TypeEntiteDTO> getAllTypeEntitiesBySociete (SocieteDTO SocieteDTO);
     ResponseOutput <TypeEntiteDTO> getTypeEntitiesBySociete (Long id);
+    ResponseOutput <TypeEntiteDTO> getTypeEntitiesById (Long id);
 
     /*=========================================================================*/
 

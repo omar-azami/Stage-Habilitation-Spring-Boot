@@ -63,7 +63,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 antMatchers("/authenticate").permitAll().
                 antMatchers("/admin/**").hasAnyAuthority("ADMIN", "MODERATEUR").
                 antMatchers("/moderateur/**").hasAnyAuthority("MODERATEUR").
-                antMatchers("/user/**").hasAnyAuthority("USER", "ADMIN", "MODERATEUR").
+                antMatchers("/user/**").hasAnyAuthority("UTILISATEUR", "ADMIN", "MODERATEUR").
 
                 antMatchers("/hello").hasAuthority("CLIENT").
                 anyRequest().authenticated().and().

@@ -186,17 +186,17 @@ public class StageHabilitationApplication implements CommandLineRunner {
 //
 //		typeEntiteRepository.deleteAll();
 		
-		RoleDTO roleDTO = new RoleDTO("ADMIN");
+		RoleDTO roleDTO = new RoleDTO("UTILISATEUR");
 		iUserService.persist(roleDTO); 
-		RoleDTO admin = iUserService.searchRoleByLibele("ADMIN").getData();
-		SocieteDTO SocieteDTO = soConverter.toVo(societeRepository.findByCode("123666"));//		TypeEntite type = typeEntiteRepository.findByNom("DIRECTION GENERAL").get(0);
-		LocaliteDTO localiteDTO = localiteConverter.toVo(localiteRepository.findByNom("ALBANIA"));
+//		RoleDTO admin = iUserService.searchRoleByLibele("ADMIN").getData();
+//		SocieteDTO SocieteDTO = soConverter.toVo(societeRepository.findByCode("123666"));//		TypeEntite type = typeEntiteRepository.findByNom("DIRECTION GENERAL").get(0);
+//		LocaliteDTO localiteDTO = localiteConverter.toVo(localiteRepository.findByNom("ALBANIA"));
 //		entiteRepository.save(new Entite("ab", "456", null, localiteConverter.toBo(localiteDTO), soConverter.toBo(SocieteDTO),type));
 //    private List<T> collection;
 
-		List<TypeEntiteDTO> entiteDTO = typeEntiteConverter.toVoList(typeEntiteRepository.findBySociete(societeConverter.toBo(SocieteDTO)));
-		System.out.println("tttype : "+entiteDTO);
-		ProfilDTO profilDTO = profilConverter.toVo(profilRepository.findByNom("PROFIL JAVA").get(0));
+//		List<TypeEntiteDTO> entiteDTO = typeEntiteConverter.toVoList(typeEntiteRepository.findBySociete(societeConverter.toBo(SocieteDTO)));
+//		System.out.println("tttype : "+entiteDTO);
+//		ProfilDTO profilDTO = profilConverter.toVo(profilRepository.findByNom("PROFIL JAVA").get(0));
 //
 //		utilisateurRepository.deleteAll();
 

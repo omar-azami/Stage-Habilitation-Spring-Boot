@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.telio.portail_societe.dto.entities.*;
 import org.telio.portail_societe.generic.classes.ResponseOutput;
 import org.telio.portail_societe.idClass.ApplicationID;
+import org.telio.portail_societe.idClass.EntiteID;
 import org.telio.portail_societe.idClass.ProfilID;
 import org.telio.portail_societe.idClass.TypeEntiteID;
 import org.telio.portail_societe.metier.interfaces.IHabilitation;
@@ -172,6 +173,13 @@ public class HabilitationRest {
         String field = fieldName == null ? "id" : fieldName;
         return new ResponseEntity<>(iHabilitation.getAllApplicationsSortBy(field),HttpStatus.OK);
     }
+    
+    @GetMapping("/show/application/societe/id/{id}")
+    public ResponseEntity <ResponseOutput <ApplicationDTO> > getApplicationBySociete ( @PathVariable ("id") Long id)
+    {
+        return new ResponseEntity<>(iHabilitation.getApplicationBySociete(id), HttpStatus.OK);
+    }
+    
 
     @PostMapping("/add/profil")
     public ResponseEntity <ResponseOutput <ProfilDTO> > persist (@RequestBody ProfilDTO profilDTO)
@@ -267,6 +275,12 @@ public class HabilitationRest {
     }
 
 
+    @GetMapping(value = {"/show/localite/id/{id}"})
+    public ResponseEntity <ResponseOutput <LocaliteDTO> > getLocaliteByID ( @PathVariable(name = "id", required = true) Long id)
+    {
+        return new ResponseEntity<>(iHabilitation.searchLocaliteByID(id),HttpStatus.OK);
+    }
+    
     @PostMapping("/add/type-entite")
     public ResponseEntity <ResponseOutput <TypeEntiteDTO> > persist (@RequestBody TypeEntiteDTO typeEntiteDTO)
     {
@@ -301,7 +315,6 @@ public class HabilitationRest {
         return new ResponseEntity<>(iHabilitation.getAllTypeEntitiesSortBy(field),HttpStatus.OK);
     }
     
-    
     @DeleteMapping("/delete/type-entite/{id}/{societe}")
     public ResponseEntity <ResponseOutput <TypeEntiteDTO> >  deleteTypeEntite ( @PathVariable("id") Long id, @PathVariable("societe") Long societe)
     {
@@ -317,5 +330,52 @@ public class HabilitationRest {
     public ResponseEntity <ResponseOutput <TypeEntiteDTO> > getTypeEntitiesById ( @PathVariable(name = "id", required = true) Long id)
     {
         return new ResponseEntity<>(iHabilitation.getTypeEntitiesById(id),HttpStatus.OK);
+    }
+    
+    
+    @PostMapping("/add/entite")
+    public ResponseEntity <ResponseOutput <EntiteDTO> > persist (@RequestBody EntiteDTO entiteDTO)
+    {
+        return new ResponseEntity<>(iHabilitation.persist(entiteDTO), HttpStatus.OK);
+    }
+
+    @PatchMapping("/update/entite/{id}/{societe}")
+    public ResponseEntity <ResponseOutput <EntiteDTO> > update ( @PathVariable("id") Long id, @PathVariable("societe") Long societe, @RequestBody EntiteDTO entiteDTO)
+    {
+        EntiteID key = new EntiteID();
+        key.setId(id);
+        key.setSociete(societe);
+        return  new ResponseEntity<>(iHabilitation.update(key, entiteDTO), HttpStatus.OK);
+    }
+    
+    
+    
+    @GetMapping("/show/entite/societe/id/{id}")
+    public ResponseEntity <ResponseOutput <EntiteDTO> > getEntitiesBySociete ( @PathVariable ("id") Long id)
+    {
+        return new ResponseEntity<>(iHabilitation.getEntitiesBySociete(id), HttpStatus.OK);
+    }
+    
+    @GetMapping(value = {"/show/entite/all"})
+    public ResponseEntity <ResponseOutput <EntiteDTO> > getAllEntities ( )
+    {
+        return new ResponseEntity<>(iHabilitation.getAllEntities(),HttpStatus.OK);
+    }
+    
+    
+    @DeleteMapping("/delete/entite/{id}/{societe}")
+    public ResponseEntity <ResponseOutput <EntiteDTO> >  deleteEntite ( @PathVariable("id") Long id, @PathVariable("societe") Long societe)
+    {
+    EntiteID key = new EntiteID();
+    key.setId(id);
+    key.setSociete(societe);
+    System.out.println("key  :"+key);
+    
+        return new ResponseEntity<>(iHabilitation.deleteEntite(key), HttpStatus.OK);
+    }
+    @GetMapping(value = {"/show/entiteById/id/{id}"})
+    public ResponseEntity <ResponseOutput <EntiteDTO> > getEntitiesById ( @PathVariable(name = "id", required = true) Long id)
+    {
+        return new ResponseEntity<>(iHabilitation.getEntitiesById(id),HttpStatus.OK);
     }
 }

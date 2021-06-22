@@ -40,6 +40,7 @@ public interface IHabilitation {
     ResponseOutput <ApplicationDTO> searchApplicationByNom (String nom);
     ResponseOutput <ApplicationDTO> searchApplicationByID (Long id, Long societe);
     ResponseOutput <ApplicationDTO> getAllApplicationsSortBy (String fieldName);
+    ResponseOutput <ApplicationDTO> getApplicationBySociete(Long id) ;
 
     /*=========================================================================*/
 
@@ -65,6 +66,8 @@ public interface IHabilitation {
     ResponseOutput <LocaliteDTO> searchLocaliteByCode (String code);
     ResponseOutput <LocaliteDTO> searchLocaliteByNomAbrege (String nomAbrege);
     ResponseOutput <LocaliteDTO> getAllLocaliteSortBy (String fieldName);
+    ResponseOutput <LocaliteDTO> searchLocaliteByID (Long id);
+
 
     /*=========================================================================*/
 
@@ -90,12 +93,15 @@ public interface IHabilitation {
 
     ResponseOutput <EntiteDTO> persist (EntiteDTO entiteDTO);
     ResponseOutput <EntiteDTO> update (EntiteID entiteID, EntiteDTO entiteDTO);
-    ResponseOutput <EntiteDTO> deleteEntite (EntiteDTO entiteDTO);
+    ResponseOutput <EntiteDTO> deleteEntite (EntiteID entiteID);
     ResponseOutput <EntiteDTO> searchEntiteByNom (String nom);
     ResponseOutput <EntiteDTO> searchEntiteByCode (String code);
     ResponseOutput <EntiteDTO> searchEntiteByID (Long id, Long societe);
     ResponseOutput <EntiteDTO> searchEntiteMere ();
     ResponseOutput <EntiteDTO> getAllEntitiesSortBy (String fieldName);
+    ResponseOutput <EntiteDTO> getEntitiesBySociete (Long id);
+    ResponseOutput <EntiteDTO> getAllEntities ();
+    ResponseOutput <EntiteDTO> getEntitiesById (Long id);
 
     /*==========================================================================*/
 

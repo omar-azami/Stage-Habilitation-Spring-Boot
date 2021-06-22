@@ -641,23 +641,39 @@ public class IHabilitationImpl implements IHabilitation {
 
     @Override
     public ResponseOutput<ApplicationDTO> deleteApplication(ApplicationID applicationID) {
+        
         ResponseOutput <ApplicationDTO> applicationDTOResponseOutput = new ResponseOutput<>();
         applicationDTOResponseOutput.setTypeOperation("DELETE");
-        if (applicationRepository.existsById(applicationID))
-        {
-            applicationRepository.deleteById(applicationID);
-            applicationDTOResponseOutput.setCode("200");
-            applicationDTOResponseOutput.setStatut("SUCCES");
-            applicationDTOResponseOutput.setMessage("Application Supprimer");
-
-        }
-        else
-        {
-            applicationDTOResponseOutput.setCode("500");
-            applicationDTOResponseOutput.setStatut("NOT FOUND");
-            applicationDTOResponseOutput.setMessage("Application non  Supprimé");
-        }
-        return applicationDTOResponseOutput;
+        // 
+         if(applicationRepository.existsById(applicationID))
+         {
+        	 for (MenuDTO menuDTO : menuConverter.toVoList(menuRepository.findAll()))
+        	 {
+        		 if (menuDTO.getApplicationDTO().getId() == applicationID.getId())
+        		 {
+        			 applicationDTOResponseOutput.setCode("300");
+        			 applicationDTOResponseOutput.setStatut("WARNING");
+        			 applicationDTOResponseOutput.setMessage("Le type de societe n'a pas été supprimé ,Veuillez suprrimer les societes ayant ce type  ");
+                     return applicationDTOResponseOutput;
+        		 }
+        		 
+        	 }
+        	 applicationRepository.deleteById(applicationID);
+        	 applicationDTOResponseOutput.setCode("500");
+        	 applicationDTOResponseOutput.setStatut("SUCCESS");
+        	 applicationDTOResponseOutput.setMessage("Le type de societe a ete bien supprime");
+             return applicationDTOResponseOutput;
+        	 
+        	 
+         }
+         else {
+        	 // element not found 
+        	 applicationDTOResponseOutput.setCode("500");
+        	 applicationDTOResponseOutput.setStatut("NOT FOUND");
+        	 applicationDTOResponseOutput.setMessage("Le type de societe chercher est introuvable");
+             return applicationDTOResponseOutput;
+         }
+        
     }
 
     @Override
@@ -726,6 +742,18 @@ public class IHabilitationImpl implements IHabilitation {
         return applicationDTOResponseOutput;
     }
 
+    @Override
+    public ResponseOutput<ApplicationDTO> getApplicationBySociete(Long id) {
+        SocieteDTO societeDTO = societeConverter.toVo(societeRepository.findById(id).get());
+        ResponseOutput <ApplicationDTO> ApplicationDTOResponseOutput = new ResponseOutput<>();
+        ApplicationDTOResponseOutput.setTypeOperation("GET");
+
+        ApplicationDTOResponseOutput.setCollection(applicationConverter.toVoList(applicationRepository.findBySociete(societeConverter.toBo(societeDTO))));
+        return ApplicationDTOResponseOutput;
+
+    }
+    
+    
     @Override
     public ResponseOutput<ProfilDTO> persist(ProfilDTO profilDTO) {
     	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -1130,6 +1158,31 @@ public class IHabilitationImpl implements IHabilitation {
     }
 
     @Override
+    public ResponseOutput <LocaliteDTO> searchLocaliteByID (Long id){
+    	
+        ResponseOutput <LocaliteDTO> localiteDTOResponseOutput = new ResponseOutput<>();
+        localiteDTOResponseOutput.setTypeOperation("GET");
+        if(localiteRepository.findById(id) != null) {
+        LocaliteDTO localiteDTO = localiteConverter.toVo(localiteRepository.findById(id).get());
+        if(localiteDTO != null)
+        {
+        	localiteDTOResponseOutput.setStatut("SUCCESS");
+        	localiteDTOResponseOutput.setCode("200");
+        	localiteDTOResponseOutput.setMessage(" Operation Effectué avec succés ");
+        	localiteDTOResponseOutput.setData(localiteDTO);
+        }
+        else
+        {
+        	localiteDTOResponseOutput.setStatut("NOT FOUND");
+        	localiteDTOResponseOutput.setCode("500");
+        	localiteDTOResponseOutput.setMessage(" Aucun enregistrement comportant ce nom :  "+id);
+        }
+        }
+        return localiteDTOResponseOutput;
+    }
+
+    
+    @Override
     public ResponseOutput<TypeEntiteDTO> persist(TypeEntiteDTO typeEntiteDTO) {
     	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     	typeEntiteDTO.setCreatedBy(authentication.getName());
@@ -1297,7 +1350,7 @@ public class IHabilitationImpl implements IHabilitation {
 	}
 	
 	 @Override
-	    public ResponseOutput<TypeEntiteDTO> getTypeEntitiesBySociete(Long id) {
+	public ResponseOutput<TypeEntiteDTO> getTypeEntitiesBySociete(Long id) {
 	        SocieteDTO societeDTO = societeConverter.toVo(societeRepository.findById(id).get());
 	        ResponseOutput <TypeEntiteDTO> typeEntiteDTOResponseOutput = new ResponseOutput<>();
 	        typeEntiteDTOResponseOutput.setTypeOperation("GET");
@@ -1317,7 +1370,7 @@ public class IHabilitationImpl implements IHabilitation {
     }
 
 	 @Override
-	    public ResponseOutput<TypeEntiteDTO> getTypeEntitiesById(Long id) {
+	public ResponseOutput<TypeEntiteDTO> getTypeEntitiesById(Long id) {
 	    	ResponseOutput <TypeEntiteDTO> typeEntiteDTOResponseOutput = new ResponseOutput<>();
 	        typeEntiteDTOResponseOutput.setTypeOperation("GET");
 	        typeEntiteDTOResponseOutput.setData(typeEntiteConverter.toVo(typeEntiteRepository.findById(id)));
@@ -1381,7 +1434,7 @@ public class IHabilitationImpl implements IHabilitation {
    	}
        
        @Override
-       public ResponseOutput<EntiteDTO> persist(EntiteDTO entiteDTO) {
+   public ResponseOutput<EntiteDTO> persist(EntiteDTO entiteDTO) {
     	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
        	entiteDTO.setCreatedBy(authentication.getName());
        	entiteDTO.setCreatedDate(new Date());
@@ -1404,14 +1457,135 @@ public class IHabilitationImpl implements IHabilitation {
 
     @Override
     public ResponseOutput<EntiteDTO> update(EntiteID entiteID, EntiteDTO entiteDTO) {
-        return null;
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	entiteDTO.setLastModifiedBy(authentication.getName());
+    	entiteDTO.setLastModifedDate(new Date());
+    	ResponseOutput <EntiteDTO> entiteDTOResponseOutput = new ResponseOutput<>();
+        entiteDTOResponseOutput.setTypeOperation("PATCH");
+        // SAME OBJECT
+        if(entiteRepository.existsById(entiteID))
+        {
+            // same object
+            EntiteDTO wanted = entiteConverter.toVo(entiteRepository.findById(entiteID).get());
+            if(wanted.getNom().equals(entiteDTO.getNom()) &&
+                    wanted.getCode().equals(entiteDTO.getCode()) &&
+                    wanted.getLocaliteDTO().getId()==entiteDTO.getLocaliteDTO().getId() &&
+                    wanted.getTypeEntiteDTO().getId()==entiteDTO.getTypeEntiteDTO().getId() &&
+                    wanted.getEntiteMereDTO().getId()==entiteDTO.getEntiteMereDTO().getId() &&
+               wanted.getSocieteDTO().getId() == entiteDTO.getSocieteDTO().getId())
+            {
+            	entiteDTOResponseOutput.setCode("300");
+            	entiteDTOResponseOutput.setStatut("WARNING");
+            	entiteDTOResponseOutput.setMessage("Vous n'avez effectuez aucun changement sur l'objet");
+            	entiteDTOResponseOutput.setData(entiteDTO);
+                return entiteDTOResponseOutput;
+            }
+            for (EntiteDTO entiteDTO1  : entiteConverter.toVoList(entiteRepository.findAll()))
+            {
+                if (entiteDTO1.getSocieteDTO().getId() == entiteDTO.getSocieteDTO().getId()
+                		&&(entiteDTO1.getId()-entiteID.getId()!=0)) 
+                	
+                {
+                    if(entiteDTO1.getNom().equals(entiteDTO.getNom()))
+                    {
+                    	
+                    	entiteDTOResponseOutput.setCode("404");
+                    	entiteDTOResponseOutput.setStatut("ERROR");
+                    	entiteDTOResponseOutput.setMessage(" Ce nom est déja utiliser pour cette societe ");
+                     return entiteDTOResponseOutput;
+                    }
+                    if(entiteDTO1.getCode().equals(entiteDTO.getCode()))
+                    {
+                    	entiteDTOResponseOutput.setCode("404");
+                    	entiteDTOResponseOutput.setStatut("ERROR");
+                    	entiteDTOResponseOutput.setMessage(" Ce code est déja utiliser pour cette societe ");
+                        return entiteDTOResponseOutput;
+                    }
+                }
+            }
+
+            entiteDTO.setId(entiteID.getId());
+            entiteDTO.setSocieteDTO(societeConverter.toVo(societeRepository.findById(entiteID.getSociete()).get()));
+            entiteRepository.save(entiteConverter.toBo(entiteDTO));
+            entiteDTOResponseOutput.setCode("200");
+            entiteDTOResponseOutput.setStatut("SUCCES");
+            entiteDTOResponseOutput.setMessage(" Entité modifié ");
+
+        }
+        else
+        {
+        	entiteDTOResponseOutput.setCode("500");
+            entiteDTOResponseOutput.setStatut("NOT FOUND");
+            entiteDTOResponseOutput.setMessage(" Le type d'entité rechercher est introuvable");
+        }
+       return entiteDTOResponseOutput;
     }
 
     @Override
-    public ResponseOutput<EntiteDTO> deleteEntite(EntiteDTO entiteDTO) {
-        return null;
+    public ResponseOutput<EntiteDTO> deleteEntite(EntiteID entiteID) {
+    	 
+        ResponseOutput <EntiteDTO> entiteDTOResponseOutput = new ResponseOutput<>();
+        entiteDTOResponseOutput.setTypeOperation("DELETE");
+        if(entiteRepository.existsById(entiteID))
+        {
+	        for (EntiteDTO entiteDTO : entiteConverter.toVoList(entiteRepository.findAll()))
+	   	 		{
+			   		 if (entiteDTO.getEntiteMereDTO() != null)
+			   		 {
+				   		 if (entiteDTO.getEntiteMereDTO().getId() != null)
+				   		 {
+			   			 
+				   		 if (entiteDTO.getEntiteMereDTO().getId() == entiteID.getId()) {
+
+				   			entiteDTOResponseOutput.setCode("300");
+				   			entiteDTOResponseOutput.setStatut("WARNING");
+				   			entiteDTOResponseOutput.setMessage("Le Type Entite n'a pas été supprimé ,Veuillez supprimer les entits fils   ");
+			                return entiteDTOResponseOutput;
+				   		 }
+			   		 }
+			   		 }
+	   		 
+	   	 		}
+        
+        
+	        for (UtilisateurDTO utilisateurDTO : utilisateurConverter.toVoList(utilisateurRepository.findAll()))
+	     	 	{
+		     		 if (utilisateurDTO.getEntiteDTO().getId() != null)
+		     		 {
+		     			if (utilisateurDTO.getEntiteDTO().getId() == entiteID.getId())
+			     		 {
+		     				entiteDTOResponseOutput.setCode("300");
+		     				entiteDTOResponseOutput.setStatut("WARNING");
+		     				entiteDTOResponseOutput.setMessage("La societe n'a pas été supprimé ,Veuillez suprrimer les entites ayant ce type  ");
+		                  return entiteDTOResponseOutput;}
+		     		 }
+		     		 
+		     	 } 
+      
+	        entiteRepository.deleteById(entiteID);
+	        entiteDTOResponseOutput.setStatut("SUCCES");
+	        entiteDTOResponseOutput.setCode("200");
+	        entiteDTOResponseOutput.setMessage("Le Type Entite a été supprimé ! ");
+	        return entiteDTOResponseOutput;
+	         }
+        entiteDTOResponseOutput.setCode("500");
+        entiteDTOResponseOutput.setStatut("NOT FOUND");
+        entiteDTOResponseOutput.setMessage("Lae de societe chercher est introuvable");
+        return entiteDTOResponseOutput;
     }
 
+    @Override
+   	public ResponseOutput<EntiteDTO> getEntitiesBySociete(Long id) {
+   	        SocieteDTO societeDTO = societeConverter.toVo(societeRepository.findById(id).get());
+   	        ResponseOutput <EntiteDTO> entiteDTOResponseOutput = new ResponseOutput<>();
+   	       entiteDTOResponseOutput.setTypeOperation("GET");
+
+   	        entiteDTOResponseOutput.setCollection(entiteConverter.toVoList(entiteRepository.findBySociete(societeConverter.toBo(societeDTO))));
+   	        return entiteDTOResponseOutput;
+
+   	    }
+       
+    
     @Override
     public ResponseOutput<EntiteDTO> searchEntiteByNom(String nom) {
     	ResponseOutput <EntiteDTO> entiteDTOResponseOutput = new ResponseOutput<>();
@@ -1453,7 +1627,36 @@ public class IHabilitationImpl implements IHabilitation {
     public ResponseOutput<EntiteDTO> getAllEntitiesSortBy(String fieldName) {
         return null;
     }
+    
+    
+    @Override
+    public ResponseOutput<EntiteDTO> getAllEntities() {
+    	ResponseOutput <EntiteDTO> entiteDTOResponseOutput = new ResponseOutput<>();
+    	entiteDTOResponseOutput.setTypeOperation("GET");
+        List<EntiteDTO> entiteDTO = entiteConverter.toVoList(entiteRepository.findAll());
+        if( entiteDTO.size() !=0 )
+        {
+        	entiteDTOResponseOutput.setCode("200");
+        	entiteDTOResponseOutput.setStatut("SUCCES");
+        	entiteDTOResponseOutput.setMessage("Operation Effectué !");
+        	entiteDTOResponseOutput.setCollection(entiteDTO);
 
+        }
+        else
+        {
+        	entiteDTOResponseOutput.setCode("500");
+        	entiteDTOResponseOutput.setStatut("NOT FOUND");
+        	entiteDTOResponseOutput.setMessage("Operation Effectué !");
+        }
+        return entiteDTOResponseOutput;
+      }
+    @Override
+	public ResponseOutput<EntiteDTO> getEntitiesById(Long id) {
+	    	ResponseOutput <EntiteDTO> entiteDTOResponseOutput = new ResponseOutput<>();
+	        entiteDTOResponseOutput.setTypeOperation("GET");
+	        entiteDTOResponseOutput.setData(entiteConverter.toVo(entiteRepository.findById(id)));
+	        return entiteDTOResponseOutput;
+	    }
     @Override
     public ResponseOutput<MenuDTO> persist(MenuDTO menuDTO) {
         return null;

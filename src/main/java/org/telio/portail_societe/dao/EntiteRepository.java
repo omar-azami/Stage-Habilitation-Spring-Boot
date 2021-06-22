@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.telio.portail_societe.idClass.EntiteID;
 import org.telio.portail_societe.model.Entite;
+import org.telio.portail_societe.model.Societe;
+import org.telio.portail_societe.model.TypeEntite;
 
 import java.util.List;
 
@@ -12,6 +14,8 @@ public interface EntiteRepository extends JpaRepository <Entite, EntiteID> {
 
 	List<Entite> findByNom(String nom);
     List<Entite> findByCode (String code);
+    List<Entite> findBySociete(Societe societe);
+    Entite  findById(Long id);
     Boolean existsByNom (String nom);
     Boolean existsByCode (String code);
     Boolean existsBySociete (Long id);

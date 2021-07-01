@@ -58,23 +58,23 @@ public class ProfilConverter implements MapperMethods <ProfilDTO, Profil> {
         return profils;
     }
 
-    public Set<ProfilDTO> toVoList (Set <Profil> listData)
-    {
-        Set <ProfilDTO> profilDTOS = new HashSet<>();
-        if(listData != null)
-        {
-            listData.forEach(data ->profilDTOS.add(toVo(data)));
-        }
-        return profilDTOS;
-    }
-
-    public Set <Profil> toBoList (Set <ProfilDTO> listData)
-    {
-        Set <Profil> profils = new HashSet<>();
-        if(listData != null)
-        {
-            listData.forEach(data ->profils.add(toBo(data)));
-        }
-        return profils;
-    }
+//    public Set<ProfilDTO> toVoList (Set <Profil> listData)
+//    {
+//        Set <ProfilDTO> profilDTOS = new HashSet<>();
+//        if(listData != null)
+//        {
+//            listData.forEach(data ->profilDTOS.add(toVo(data)));
+//        }
+//        return profilDTOS;
+//    }
+//
+//    public Set <Profil> toBoList (Set <ProfilDTO> listData)
+//    {
+//        Set <Profil> profils = new HashSet<>();
+//        if(listData != null)
+//        {
+//            listData.forEach(data ->profils.add(toBo(data)));
+//        }
+//        return profils;
+//    }
 }

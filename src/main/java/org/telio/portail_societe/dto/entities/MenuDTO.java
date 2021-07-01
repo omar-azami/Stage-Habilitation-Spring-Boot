@@ -42,24 +42,9 @@ public class MenuDTO extends Auditable <String> {
         return this.nom.toUpperCase();
     }
 
-    public String toUpperLien()
-    {
-
-        return this.lien.toUpperCase();
-    }
-
-    public String toUpperParametres()
-    {
-        return this.parametres.toUpperCase();
-    }
-
     public String toUpperType()
     {
         return this.type.toUpperCase();
     }
 
-    public String toUpperDescription()
-    {
-        return this.description.toUpperCase();
-    }
 }

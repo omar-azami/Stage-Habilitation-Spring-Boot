@@ -9,7 +9,6 @@ import javax.persistence.EntityListeners;
 
 @Data
 @NoArgsConstructor
-@EntityListeners(AuditingEntityListener.class)
 public class ProfilDTO extends Auditable <String> {
 
     private Long id;

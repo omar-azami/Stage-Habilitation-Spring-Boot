@@ -42,12 +42,11 @@ public class MenuConverter implements MapperMethods <MenuDTO, Menu> {
     public Menu toBo(MenuDTO data) {
 
         Menu menu = new Menu();
-        System.out.println("ID data : "+ data.getId());
         menu.setId(data.getId());
         menu.setNom(data.toUpperNom());
-        menu.setLien(data.toUpperLien());
-        menu.setDescription(data.toUpperDescription());
-        menu.setParametres(data.toUpperParametres());
+        menu.setLien(data.getLien());
+        menu.setDescription(data.getDescription());
+        menu.setParametres(data.getParametres());
         menu.setType(data.toUpperType());
         menu.setOrdre(data.getOrdre());
         menu.setCreatedBy(data.getCreatedBy());

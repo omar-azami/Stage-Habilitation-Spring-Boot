@@ -12,12 +12,12 @@ import java.util.List;
 @Component
 public class ApplicationConverter implements MapperMethods <ApplicationDTO, Application> {
     @Autowired
-    SocieteConverter converter;
+    private SocieteConverter converter;
 
     @Override
     public ApplicationDTO toVo(Application data) {
         ApplicationDTO applicationDTO = new ApplicationDTO();
-        if (data == null) return applicationDTO;
+        if (data==null) return applicationDTO;
         applicationDTO.setId(data.getId());
         applicationDTO.setNom(data.getNom());
         applicationDTO.setDescription(data.getDescription());
@@ -32,7 +32,7 @@ public class ApplicationConverter implements MapperMethods <ApplicationDTO, Appl
     @Override
     public Application toBo(ApplicationDTO data) {
         Application application = new Application();
-        if (data == null) return application;
+        if (data ==null) return application;
         application.setId(data.getId());
         application.setNom(data.toUpperNom());
         application.setDescription(data.toUpperDescription());
@@ -55,6 +55,6 @@ public class ApplicationConverter implements MapperMethods <ApplicationDTO, Appl
     public List<Application> toBoList(List<ApplicationDTO> listData) {
         List<Application> applications = new ArrayList<>();
         if(listData != null) listData.forEach(data ->applications.add(toBo(data)));
-        return null;
+        return applications;
     }
 }

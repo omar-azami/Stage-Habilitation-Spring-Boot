@@ -18,7 +18,6 @@ public class SocieteConverter implements MapperMethods <SocieteDTO, Societe> {
     @Override
     public SocieteDTO toVo(Societe data) {
         SocieteDTO societeDTO = new SocieteDTO();
-        if(data == null) return societeDTO;
         societeDTO.setId(data.getId());
         societeDTO.setNom(data.getNom());
         societeDTO.setCode(data.getCode());
@@ -35,7 +34,6 @@ public class SocieteConverter implements MapperMethods <SocieteDTO, Societe> {
     @Override
     public Societe toBo(SocieteDTO data) {
         Societe societe = new Societe();
-        if (data == null) return societe;
         societe.setId(data.getId());
         societe.setNom(data.toUpperNom());
         societe.setCode(data.toUpperCode());

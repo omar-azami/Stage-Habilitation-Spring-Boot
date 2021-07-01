@@ -18,6 +18,7 @@ import org.telio.portail_societe.metier.interfaces.IHabilitation;
 import org.telio.portail_societe.metier.interfaces.IUserService;
 import org.telio.portail_societe.model.*;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -69,6 +70,8 @@ public class StageHabilitationApplication implements CommandLineRunner {
 	private RoleConverter roleConverter;
 	@Autowired
 	private UtilisateurRepository utilisateurRepository;
+	@Autowired
+	private ProfilMenuRepository profilMenuRepository;
 	@Autowired
 	private SocieteConverter societeConverter;
 	@Bean
@@ -185,7 +188,11 @@ public class StageHabilitationApplication implements CommandLineRunner {
 ////
 //
 //		typeEntiteRepository.deleteAll();
+		SimpleDateFormat sdf1 = new SimpleDateFormat("dd-mm-yyyy");
+		Date date1= new Date();
+		Date date2= new Date();
 		
+//		profilMenuRepository.insertUser(date1, date2, 9l, 5l, 230l, 5l, 245l);
 		RoleDTO roleDTO = new RoleDTO("UTILISATEUR");
 		iUserService.persist(roleDTO); 
 //		RoleDTO admin = iUserService.searchRoleByLibele("ADMIN").getData();

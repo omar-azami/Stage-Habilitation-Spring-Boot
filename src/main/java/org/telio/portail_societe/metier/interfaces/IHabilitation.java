@@ -1,8 +1,12 @@
 package org.telio.portail_societe.metier.interfaces;
 
+import java.util.List;
+
+import org.springframework.web.multipart.MultipartFile;
 import org.telio.portail_societe.dto.entities.*;
 import org.telio.portail_societe.generic.classes.ResponseOutput;
 import org.telio.portail_societe.idClass.*;
+import org.telio.portail_societe.model.ProfilMenu;
 
 public interface IHabilitation {
 
@@ -41,6 +45,7 @@ public interface IHabilitation {
     ResponseOutput <ApplicationDTO> searchApplicationByID (Long id, Long societe);
     ResponseOutput <ApplicationDTO> getAllApplicationsSortBy (String fieldName);
     ResponseOutput <ApplicationDTO> getApplicationBySociete(Long id) ;
+    ResponseOutput<ApplicationDTO> getApplicationById(Long id);
 
     /*=========================================================================*/
 
@@ -117,6 +122,22 @@ public interface IHabilitation {
     ResponseOutput <MenuDTO> searchMenuByID (Long id, Long societe, Long application);
     ResponseOutput <MenuDTO> searchMenuMere ();
     ResponseOutput <MenuDTO> getAllMenusSortBy (String fieldName);
+	String ctrlMenu(MenuDTO menuDTO);
+    ResponseOutput <MenuDTO> getAllMenus ();
+    ResponseOutput <MenuDTO> getAllParSocieteMenus (Long id);
+    ResponseOutput <MenuDTO> getMenuById (Long id);
+
+
+    /*==========================================================================*/
+    ResponseOutput <ProfilMenuDTO> persist (ProfilMenuDTO profilMenuDTO);
+    ResponseOutput <ProfilMenu> persist (ProfilMenu profilMenu);
+    ResponseOutput <ProfilMenuDTO> update (ProfilMenuID profilMenuID , ProfilMenuDTO menuDTO);
+    ResponseOutput <ProfilMenuDTO> deleteMenu (ProfilMenuID profilMenuID);
+    ResponseOutput <ProfilMenuDTO> getAllParSocietProfilMenu (Long id);
+    ResponseOutput <ProfilMenuDTO> getAllProfilMenu ();
+    ResponseOutput <ProfilMenu> getAllProfilMen ();
+    ResponseOutput <ProfilMenu> getAllProfilMenParSociete (Long id);
+
 
     /*==========================================================================*/
 

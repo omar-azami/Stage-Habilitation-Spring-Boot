@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.telio.portail_societe.audit.Auditable;
+import org.telio.portail_societe.model.PieceJointe;
 import org.telio.portail_societe.model.TypeSociete;
 
 import javax.persistence.EntityListeners;
@@ -19,6 +20,7 @@ public class SocieteDTO extends Auditable <String> {
     private String nomAbrege;
     private String statut;
     private TypeSocieteDTO typeSocieteDTO;
+    private PieceJointe pieceJoint;
 
     public SocieteDTO(String nom, String code, String nomAbrege, String statut, TypeSocieteDTO typeSocieteDTO) {
         this.nom = nom;
@@ -27,7 +29,14 @@ public class SocieteDTO extends Auditable <String> {
         this.statut = statut;
         this.typeSocieteDTO = typeSocieteDTO;
     }
-
+    public SocieteDTO(String nom, String code, String nomAbrege, String statut, TypeSocieteDTO typeSocieteDTO,PieceJointe pieceJoint) {
+        this.nom = nom;
+        this.code = code;
+        this.nomAbrege = nomAbrege;
+        this.statut = statut;
+        this.typeSocieteDTO = typeSocieteDTO;
+        this.pieceJoint= pieceJoint;;
+    }
     public String toUpperNom()
     {
         return this.nom.toUpperCase();

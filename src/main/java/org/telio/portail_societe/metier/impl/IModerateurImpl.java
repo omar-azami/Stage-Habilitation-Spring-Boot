@@ -7,10 +7,13 @@ import java.util.Arrays;
 import java.util.Date;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.telio.portail_societe.dao.EntiteRepository;
+import org.telio.portail_societe.dao.LocaliteRepository;
 import org.telio.portail_societe.dao.ProfilRepository;
 import org.telio.portail_societe.dao.SocieteRepository;
 import org.telio.portail_societe.dto.converter.EntiteConverter;
+import org.telio.portail_societe.dto.converter.LocaliteConverter;
 import org.telio.portail_societe.dto.converter.ProfilConverter;
 import org.telio.portail_societe.dto.converter.SocieteConverter;
 import org.telio.portail_societe.dto.entities.ApplicationDTO;
@@ -41,11 +44,15 @@ public class IModerateurImpl implements IModerateur{
 	@Autowired
 	private EntiteRepository entiteRepository;
 	@Autowired
+	private LocaliteRepository localiteRepository;
+	@Autowired
+	private LocaliteConverter localiteConverter;
+	@Autowired
 	private EntiteConverter entiteConverter;
 	@Autowired
 	private IUserService iUserService;
 	@Override
-	public ResponseOutput<SocieteDTO> fonctionAutomatique(Long id) {
+	public ResponseOutput<SocieteDTO> fonctionAutomatique(Long id,String nomm) {
 		// TODO Auto-generated method stub
 		ResponseOutput<SocieteDTO> fctAuto= new ResponseOutput<>();
 		
@@ -61,14 +68,17 @@ public class IModerateurImpl implements IModerateur{
 		iHabilitation.persist(typeEntiteDTO);
 		
 		TypeEntiteDTO wantedType = iHabilitation.searchTypeEntiteByNom(nickname).getData();
-		
-		LocaliteDTO localiteDTO =new LocaliteDTO(nickname, "", "");
+		if(localiteRepository.existsByNom(nomm)) {
+			LocaliteDTO localiteDTO=localiteConverter.toVo(localiteRepository.findByNom(nomm));
+		}else {
+		LocaliteDTO localiteDTO =new LocaliteDTO(nomm, "", "");
 		localiteDTO.setCreatedBy("SYSTEM");
 		localiteDTO.setCreatedDate(new Date());
 		iHabilitation.persist(localiteDTO);
-		
-		LocaliteDTO wantedLocalite = iHabilitation.searchLocaliteByNom(nickname).getData();	
-		
+
+		}
+		LocaliteDTO wantedLocalite = iHabilitation.searchLocaliteByNom(nomm).getData();	
+
 		EntiteDTO entiteDTOo =new EntiteDTO(nickname, nickcode,null, wantedLocalite, wanted, wantedType);
 		entiteDTOo.setCreatedBy("SYSTEM");
 		entiteDTOo.setCreatedDate(new Date());
@@ -90,7 +100,7 @@ public class IModerateurImpl implements IModerateur{
 		
 		RoleDTO admin = iUserService.searchRoleByLibele("ADMIN").getData();
         nickname = nicknam.replace(" ", "-");
-        nickname =  nickname + "@admin.com"  ;
+        nickname =  nickname + "@gmail.com"  ;
         UtilisateurDTO utilisateurDTO = new UtilisateurDTO("admin", "admin", nickname, "admin123456", "public", "",
 				wanted, entiteDTO, profilDTO, Arrays.asList(admin));
         utilisateurDTO.setCreatedBy("SYSTEM");
@@ -110,12 +120,13 @@ public class IModerateurImpl implements IModerateur{
 		fctAuto.setMessage("Lasociete a ete bien ajoute");
         return fctAuto;
         }
-
+	
 	@Override
-	public ResponseOutput<SocieteDTO> fonctionGlobale(SocieteDTO societe) {
-	     String message = ctrlSociete(societe);
+	public ResponseOutput<SocieteDTO> fonctionGlobale(SocieteDTO societeDTO,String nom ) {
+
+	     String message = ctrlSociete(societeDTO);
 		 ResponseOutput <SocieteDTO> societeDTOResponseOutput = new ResponseOutput<>();
-	 		iHabilitation.persist(societe);
+	 		iHabilitation.persist( societeDTO);
 
 	     if(message != null)
 	     {     
@@ -126,8 +137,8 @@ public class IModerateurImpl implements IModerateur{
 	         societeDTOResponseOutput.setMessage(message);
 	         return societeDTOResponseOutput;
 	     }
-		SocieteDTO societeDto = iHabilitation.searchSocieteByNom(societe.getNom()).getData();
-		ResponseOutput<SocieteDTO> automatique = fonctionAutomatique(societeDto.getId());
+		SocieteDTO societeDto = iHabilitation.searchSocieteByNom(societeDTO.getNom()).getData();
+		ResponseOutput<SocieteDTO> automatique = fonctionAutomatique(societeDto.getId(),nom);
 		return automatique;
 		
 	}

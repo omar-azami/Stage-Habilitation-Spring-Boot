@@ -30,6 +30,9 @@ public class Societe extends Auditable <String> {
     private TypeSociete typeSociete;
     @Column(name = "statut")
     private String statut;
+    @Embedded
+    private PieceJointe imageSociete;
+    
     //auditing
 
     public String toUpperName()
@@ -45,4 +48,5 @@ public class Societe extends Auditable <String> {
         this.typeSociete = typeSociete;
         this.statut = statut;
     }
+   
 }

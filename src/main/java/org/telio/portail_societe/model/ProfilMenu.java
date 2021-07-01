@@ -9,8 +9,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.telio.portail_societe.audit.Auditable;
 import org.telio.portail_societe.idClass.ProfilMenuID;
 
+import java.util.Date;
+
 import javax.persistence.*;
-import java.sql.Date;
 
 @Table(name="ProfilMenu")
 @Entity
@@ -26,6 +27,7 @@ public class ProfilMenu extends Auditable<String> {
     private Date dateDebut;
     @Column(name="dateFint")
     private Date dateFin;
+    
 
     @Id
     @ManyToOne

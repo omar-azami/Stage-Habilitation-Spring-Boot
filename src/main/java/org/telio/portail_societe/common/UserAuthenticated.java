@@ -3,6 +3,7 @@ package org.telio.portail_societe.common;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.telio.portail_societe.dto.entities.RoleDTO;
+import org.telio.portail_societe.model.Profil;
 import org.telio.portail_societe.model.Societe;
 
 import java.util.List;
@@ -13,7 +14,7 @@ public class UserAuthenticated {
 
     private String login;
     private List<String> roles;
-    private String profilName;
+    private Profil profil;
     private String email;
     private String token;
     private String entite;

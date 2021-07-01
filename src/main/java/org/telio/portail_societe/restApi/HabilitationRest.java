@@ -1,22 +1,27 @@
 package org.telio.portail_societe.restApi;
 
+import java.io.IOException;
+
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.telio.portail_societe.dto.entities.*;
 import org.telio.portail_societe.generic.classes.ResponseOutput;
 import org.telio.portail_societe.idClass.ApplicationID;
 import org.telio.portail_societe.idClass.EntiteID;
+import org.telio.portail_societe.idClass.MenuID;
 import org.telio.portail_societe.idClass.ProfilID;
 import org.telio.portail_societe.idClass.TypeEntiteID;
 import org.telio.portail_societe.metier.interfaces.IHabilitation;
 import org.telio.portail_societe.metier.interfaces.IModerateur;
+import org.telio.portail_societe.model.ProfilMenu;
 @CrossOrigin(origins = "*")
 
 @RestController
-
 @RequestMapping("/admin")
 public class HabilitationRest {
 
@@ -25,6 +30,9 @@ public class HabilitationRest {
     
     @Autowired
     private IModerateur iModeratuer;
+
+    	
+    
 
     @PostMapping("/add/typeSociete")
     public ResponseEntity <ResponseOutput <TypeSocieteDTO> > persist (@RequestBody TypeSocieteDTO typeSocieteDTO)
@@ -68,15 +76,29 @@ public class HabilitationRest {
         return new ResponseEntity<>(iHabilitation.searchTypeSocieteByStatut(statut),HttpStatus.OK);
     }
 
-    @PostMapping("/add/societesa")
-    public ResponseEntity <ResponseOutput <SocieteDTO> > persistSA (@RequestBody SocieteDTO societeDTO)
+    @PostMapping("/add/societesa/{nom}")
+    public ResponseEntity <ResponseOutput <SocieteDTO> > persistSA (@RequestBody SocieteDTO societeDTO,@PathVariable("nom") String nom) 
+    		 
     {
-        return new ResponseEntity<>(iModeratuer.fonctionGlobale(societeDTO),HttpStatus.OK);
+        return new ResponseEntity<>(iModeratuer.fonctionGlobale(societeDTO,nom),HttpStatus.OK);
+
+
+    }
+    
+    @PostMapping("/add/societesai")
+    public ResponseEntity <ResponseOutput <SocieteDTO> > persistSAI (@RequestBody SocieteDTO societeDTO) 
+    {
+
+    	System.out.println("societeDTO : *** "+societeDTO);
+		String a=null;
+        return new ResponseEntity<>(iModeratuer.fonctionGlobale(societeDTO,a),HttpStatus.OK);
     }
     
     @PostMapping("/add/societe")
-    public ResponseEntity <ResponseOutput <SocieteDTO> > persist (@RequestBody SocieteDTO societeDTO)
+    public ResponseEntity <ResponseOutput <SocieteDTO> > persist (@RequestBody SocieteDTO societeDTO, @RequestBody MultipartFile file)
     {
+    	
+    	
         return new ResponseEntity<>(iHabilitation.persist(societeDTO),HttpStatus.OK);
     }
 
@@ -167,6 +189,12 @@ public class HabilitationRest {
         return new ResponseEntity<>(iHabilitation.searchApplicationByID(id,societe),HttpStatus.OK);
     }
 
+    @GetMapping("/show/application/BYID/{id}")
+    public ResponseEntity <ResponseOutput <ApplicationDTO> > getApplicationById (@PathVariable ("id") Long id)
+    {
+        return new ResponseEntity<>(iHabilitation.getApplicationById(id),HttpStatus.OK);
+    }
+    
     @GetMapping(value = {"/show/applications", "/show/applications/{fieldName}"})
     public ResponseEntity <ResponseOutput <ApplicationDTO> > getAllApplications (@PathVariable (name = "fieldName", required = false) String fieldName)
     {
@@ -333,6 +361,66 @@ public class HabilitationRest {
     }
     
     
+    @PostMapping("/add/menu")
+    public ResponseEntity <ResponseOutput <MenuDTO> > persist (@RequestBody MenuDTO menuDTO)
+    {
+    	System.out.println(menuDTO);
+        return new ResponseEntity<>(iHabilitation.persist(menuDTO), HttpStatus.OK);
+    }
+
+    @PatchMapping("/update/menu/{id}/{application}/{societe}")
+    public ResponseEntity <ResponseOutput <MenuDTO> > update ( @PathVariable("id") Long id, @PathVariable("application") Long application , @PathVariable("societe") Long societe ,  @RequestBody MenuDTO menuDTO)
+    {
+        MenuID key = new MenuID();
+        ApplicationID key2 = new ApplicationID();
+        key2.setId(application);
+        key2.setSociete(societe);
+        key.setApplication(key2);
+        key.setId(id);
+        return  new ResponseEntity<>(iHabilitation.update(key, menuDTO), HttpStatus.OK);
+    }
+    
+    
+    
+    @GetMapping("/show/menu/societe/id/{id}")
+    public ResponseEntity <ResponseOutput <MenuDTO> > getMenuBySociete ( @PathVariable ("id") Long id)
+    {
+        return new ResponseEntity<>(iHabilitation.getAllParSocieteMenus(id), HttpStatus.OK);
+    }
+    
+    @GetMapping(value = {"/show/menuById/id/{id}"})
+    public ResponseEntity <ResponseOutput <MenuDTO> > getMenuById ( @PathVariable(name = "id", required = true) Long id)
+    {
+        return new ResponseEntity<>(iHabilitation.getMenuById(id),HttpStatus.OK);
+    }
+    
+    @GetMapping(value = {"/show/menus/all"})
+    public ResponseEntity <ResponseOutput <MenuDTO> > getAllMenus ( )
+    {
+        return new ResponseEntity<>(iHabilitation.getAllMenus(),HttpStatus.OK);
+    }
+    
+    
+//    @DeleteMapping("/delete/menu/{id}/{societe}")
+//    public ResponseEntity <ResponseOutput <MenuDTO> >  deleteMenu ( @PathVariable("id") Long id, @PathVariable("societe") Long societe)
+//    {
+//    MenuID key = new MenuID();
+//    key.setId(id);
+//    key.setSociete(societe);
+//    System.out.println("key  :"+key);
+//    
+//        return new ResponseEntity<>(iHabilitation.deleteMenu(key), HttpStatus.OK);
+//    }
+    
+    
+//    @GetMapping(value = {"/show/entiteById/id/{id}"})
+//    public ResponseEntity <ResponseOutput <EntiteDTO> > getEntitiesById ( @PathVariable(name = "id", required = true) Long id)
+//    {
+//        return new ResponseEntity<>(iHabilitation.getEntitiesById(id),HttpStatus.OK);
+//    }
+    
+    
+    
     @PostMapping("/add/entite")
     public ResponseEntity <ResponseOutput <EntiteDTO> > persist (@RequestBody EntiteDTO entiteDTO)
     {
@@ -377,5 +465,40 @@ public class HabilitationRest {
     public ResponseEntity <ResponseOutput <EntiteDTO> > getEntitiesById ( @PathVariable(name = "id", required = true) Long id)
     {
         return new ResponseEntity<>(iHabilitation.getEntitiesById(id),HttpStatus.OK);
+    }
+    /*==========================================================================*/
+    
+    @PostMapping("/add/profilmenu")
+    public ResponseEntity <ResponseOutput <ProfilMenuDTO> > persist (@RequestBody ProfilMenuDTO profilMenudto)
+    {
+    	
+    	System.out.println("profilMenU# "+profilMenudto);
+        return new ResponseEntity<>(iHabilitation.persist(profilMenudto), HttpStatus.OK);
+    }
+    
+    @PostMapping("/add/profilmen")
+    public ResponseEntity <ResponseOutput <ProfilMenu> > persist (@RequestBody ProfilMenu profilMenudto)
+    {
+    	
+    	System.out.println("profilMenU#### "+profilMenudto);
+        return new ResponseEntity<>(iHabilitation.persist(profilMenudto), HttpStatus.OK);
+    }
+    
+    @GetMapping(value = {"/show/profilMenu/all"})
+    public ResponseEntity <ResponseOutput <ProfilMenuDTO> > getAllProfilMenu ( )
+    {
+        return new ResponseEntity<>(iHabilitation.getAllProfilMenu(),HttpStatus.OK);
+    }
+    
+    
+    @GetMapping(value = {"/show/profilMenu/al"})
+    public ResponseEntity <ResponseOutput <ProfilMenu> > getAllProfilMenParSociete ( )
+    {
+        return new ResponseEntity<>(iHabilitation.getAllProfilMen(),HttpStatus.OK);
+    }
+    @GetMapping(value = {"/show/profilMenu/BySociete/{id}"})
+    public ResponseEntity <ResponseOutput <ProfilMenu> > getAllProfilMenParSociete (@PathVariable ("id") Long id )
+    {
+        return new ResponseEntity<>(iHabilitation.getAllProfilMenParSociete(id),HttpStatus.OK);
     }
 }

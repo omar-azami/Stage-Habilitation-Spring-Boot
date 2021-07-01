@@ -13,7 +13,6 @@ import java.io.Serializable;
 public class MenuID implements Serializable {
 
     private Long id;
-//    private Long societe;
     private ApplicationID application;
 
 }

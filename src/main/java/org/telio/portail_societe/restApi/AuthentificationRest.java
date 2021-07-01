@@ -82,7 +82,7 @@ public class AuthentificationRest {
 
 
         currentUser.setEmail(utilisateur.getLogin());
-        currentUser.setProfilName(utilisateur.getProfil().getNom());
+        currentUser.setProfil(utilisateur.getProfil() 	);
 
 
         return new ResponseEntity<>(userAuthenticatedResponseOutput, HttpStatus.OK);

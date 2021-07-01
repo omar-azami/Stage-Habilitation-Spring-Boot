@@ -1,18 +1,29 @@
 package org.telio.portail_societe.metier.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 import org.telio.portail_societe.dao.*;
 import org.telio.portail_societe.dto.converter.*;
 import org.telio.portail_societe.dto.entities.*;
 import org.telio.portail_societe.generic.classes.ResponseOutput;
 import org.telio.portail_societe.idClass.*;
 import org.telio.portail_societe.metier.interfaces.IHabilitation;
+import org.telio.portail_societe.model.Application;
+import org.telio.portail_societe.model.PieceJointe;
+import org.telio.portail_societe.model.ProfilMenu;
 
+import com.ctc.wstx.util.StringUtil;
+
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -36,6 +47,8 @@ public class IHabilitationImpl implements IHabilitation {
     @Autowired
     private MenuRepository menuRepository;
     @Autowired
+    private ProfilMenuRepository profilMenuRepository;
+    @Autowired
     private TypeSocieteConverter typeSocieteConverter;
     @Autowired
     private TypeEntiteConverter typeEntiteConverter;
@@ -52,10 +65,11 @@ public class IHabilitationImpl implements IHabilitation {
     @Autowired
     private MenuConverter menuConverter;
     @Autowired
+    private ProfilMenuConverter profilMenuConverter;
+    @Autowired
     private UtilisateurConverter utilisateurConverter;
     @Autowired
     private UtilisateurRepository utilisateurRepository;
-    
     
     @Override
      public String ctrlTypeSociete (TypeSocieteDTO typeSocieteDTO) {
@@ -94,6 +108,8 @@ public class IHabilitationImpl implements IHabilitation {
         ResponseOutput <TypeSocieteDTO> societeDTOResponseOutput = new ResponseOutput<>();
         societeDTOResponseOutput.setTypeOperation("PUT");
         TypeSocieteDTO typeSocieteDTO1 = typeSocieteConverter.toVo(typeSocieteRepository.findById(id).get());
+        typeSocieteDTO.setCreatedBy(typeSocieteDTO1.getCreatedBy());
+        typeSocieteDTO.setCreatedDate(typeSocieteDTO1.getCreatedDate());
         int cpt =0;
         int idc =0;
        
@@ -283,16 +299,19 @@ public class IHabilitationImpl implements IHabilitation {
         return null;
     }
 
+
+    
+
     @Override
-    public ResponseOutput<SocieteDTO> persist(SocieteDTO societeDTO) {
-    	
+    public ResponseOutput <SocieteDTO> persist (SocieteDTO societeDTO){
+        ResponseOutput <SocieteDTO> societeDTOResponseOutput = new ResponseOutput<>();
+        
     	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     	societeDTO.setCreatedBy(authentication.getName());
     	societeDTO.setCreatedDate(new Date());
-        ResponseOutput <SocieteDTO> societeDTOResponseOutput = new ResponseOutput<>();
         societeDTOResponseOutput.setTypeOperation("POST");
         String message = ctrlSociete(societeDTO);
-
+        System.out.println("societeDTO"+societeDTO);
         if(message != null)
         {
             societeDTOResponseOutput.setCode("404");
@@ -300,6 +319,10 @@ public class IHabilitationImpl implements IHabilitation {
             societeDTOResponseOutput.setMessage(message);
             return societeDTOResponseOutput;
         }
+
+        
+       
+        		
         societeRepository.save(societeConverter.toBo(societeDTO));
         societeDTOResponseOutput.setCode("200");
         societeDTOResponseOutput.setStatut("SUCCESS");
@@ -317,6 +340,8 @@ public class IHabilitationImpl implements IHabilitation {
         if (societeRepository.existsById(id))
         {
             SocieteDTO societeWantedDTO = societeConverter.toVo(societeRepository.getOne(id));
+            societeDTO.setCreatedBy(societeWantedDTO.getCreatedBy());
+            societeDTO.setCreatedDate(societeWantedDTO.getCreatedDate());
             // identical records
             if(societeWantedDTO.getNom().equals(societeDTO.getNom()) && societeWantedDTO.getCode().equals(societeDTO.getCode())
                && societeWantedDTO.getNomAbrege().equals(societeDTO.getNomAbrege()) && societeWantedDTO.getTypeSocieteDTO().getId() == societeDTO.getTypeSocieteDTO().getId())
@@ -618,6 +643,9 @@ public class IHabilitationImpl implements IHabilitation {
     	applicationDTO.setCreatedBy(authentication.getName());
     	applicationDTO.setCreatedDate(new Date());
         ResponseOutput <ApplicationDTO> applicationDTOResponseOutput = new ResponseOutput<>();
+        ApplicationDTO wanted  = applicationConverter.toVo(applicationRepository.findById(applicationID).get());
+        applicationDTO.setCreatedBy(wanted.getCreatedBy());
+        applicationDTO.setCreatedDate(wanted.getCreatedDate());
         applicationDTOResponseOutput.setTypeOperation("PATCH | PUT");
         if (applicationRepository.existsById(applicationID))
         {
@@ -625,8 +653,9 @@ public class IHabilitationImpl implements IHabilitation {
             applicationDTOResponseOutput.setStatut("SUCCES");
             applicationDTOResponseOutput.setMessage("Element Modifier ! ");
             applicationDTO.setId(applicationID.getId());
-            SocieteDTO wanted  = societeConverter.toVo(societeRepository.findById(applicationID.getSociete()).get());
-            applicationDTO.setSocieteDTO(wanted);
+            SocieteDTO wanted1  = societeConverter.toVo(societeRepository.findById(applicationID.getSociete()).get());
+            
+            applicationDTO.setSocieteDTO(wanted1);
             applicationRepository.save(applicationConverter.toBo(applicationDTO));
             applicationDTOResponseOutput.setData(applicationDTO);
         }
@@ -721,6 +750,14 @@ public class IHabilitationImpl implements IHabilitation {
     }
 
     @Override
+	public ResponseOutput<ApplicationDTO> getApplicationById(Long id) {
+	    	ResponseOutput <ApplicationDTO> ApplicationDTOResponseOutput = new ResponseOutput<>();
+	    	ApplicationDTOResponseOutput.setTypeOperation("GET");
+	        ApplicationDTOResponseOutput.setData(applicationConverter.toVo(applicationRepository.findById(id)));
+	        return ApplicationDTOResponseOutput;
+	    }
+    
+    @Override
     public ResponseOutput<ApplicationDTO> getAllApplicationsSortBy(String fieldName) {
 
         ResponseOutput <ApplicationDTO> applicationDTOResponseOutput = new ResponseOutput<>();
@@ -795,6 +832,8 @@ public class IHabilitationImpl implements IHabilitation {
         if(profilRepository.existsById(profilID))
         {
             ProfilDTO wanted  = profilConverter.toVo(profilRepository.findById(profilID).get());
+            profilDTO.setCreatedBy(wanted.getCreatedBy());
+            profilDTO.setCreatedDate(wanted.getCreatedDate());
             System.out.println("ID : "+ wanted.getNom());
             if (wanted.getNom().equals(profilDTO.getNom()) && profilID.getSociete() == wanted.getSocieteDTO().getId())
             {
@@ -905,7 +944,6 @@ public class IHabilitationImpl implements IHabilitation {
 
     }
     
-
     @Override
     public ResponseOutput<ProfilDTO> searchProfilByID(Long id, Long societe) {
         ResponseOutput <ProfilDTO> profilDTOResponseOutput = new ResponseOutput<>();
@@ -982,7 +1020,8 @@ public class IHabilitationImpl implements IHabilitation {
         ResponseOutput <LocaliteDTO> localiteDTOResponseOutput = new ResponseOutput<>();
         localiteDTOResponseOutput.setTypeOperation("PATCH");
         LocaliteDTO wanted = localiteConverter.toVo(localiteRepository.findById(id).get());
-
+        localiteDTO.setCreatedBy(wanted.getCreatedBy());
+        localiteDTO.setCreatedDate(wanted.getCreatedDate());
         if(localiteRepository.existsById(id))
         {
             if(wanted.getNom().equals(localiteDTO.getNom())
@@ -1218,15 +1257,26 @@ public class IHabilitationImpl implements IHabilitation {
         {
             // same object
             TypeEntiteDTO wanted = typeEntiteConverter.toVo(typeEntiteRepository.findById(typeEntiteID).get());
+            typeEntiteDTO.setCreatedBy(wanted.getCreatedBy());
+            typeEntiteDTO.setCreatedDate(wanted.getCreatedDate());
             if(wanted.getNom().equals(typeEntiteDTO.getNom()) &&
                wanted.getCode().equals(typeEntiteDTO.getCode()) &&
-               wanted.getSocieteDTO().getId() == typeEntiteDTO.getSocieteDTO().getId())
+               wanted.getSocieteDTO().getId() == typeEntiteDTO.getSocieteDTO().getId()
+               
+               )
             {
-                typeEntiteDTOResponseOutput.setCode("300");
-                typeEntiteDTOResponseOutput.setStatut("WARNING");
-                typeEntiteDTOResponseOutput.setMessage("Vous n'avez effectuez aucun changement sur l'objet");
-                typeEntiteDTOResponseOutput.setData(typeEntiteDTO);
-                return typeEntiteDTOResponseOutput;
+            	if(wanted.getTypeEntiteMereDTO()!=null) {
+                	if(wanted.getTypeEntiteMereDTO().getId() == typeEntiteDTO.getTypeEntiteMereDTO().getId()) {
+                		 typeEntiteDTOResponseOutput.setCode("300");
+                         typeEntiteDTOResponseOutput.setStatut("WARNING");
+                         typeEntiteDTOResponseOutput.setMessage("Vous n'avez effectuez aucun changement sur l'objet");
+                         typeEntiteDTOResponseOutput.setData(typeEntiteDTO);
+                         return typeEntiteDTOResponseOutput;
+                		
+                	}
+
+            	}
+               
             }
             for (TypeEntiteDTO typeEntiteDTO1  : typeEntiteConverter.toVoList(typeEntiteRepository.findAll()))
             {
@@ -1235,17 +1285,24 @@ public class IHabilitationImpl implements IHabilitation {
                 {
                     if(typeEntiteDTO1.getNom().equals(typeEntiteDTO.getNom()))
                     {
-                     typeEntiteDTOResponseOutput.setCode("404");
-                     typeEntiteDTOResponseOutput.setStatut("ERROR");
-                     typeEntiteDTOResponseOutput.setMessage(" Ce nom est déja utiliser pour cette societe ");
-                     return typeEntiteDTOResponseOutput;
+                    	if(!wanted.getNom().equals(typeEntiteDTO.getNom())) {
+                    		typeEntiteDTOResponseOutput.setCode("404");
+                            typeEntiteDTOResponseOutput.setStatut("ERROR");
+                            typeEntiteDTOResponseOutput.setMessage(" Ce nom est déja utiliser pour cette societe ");
+                            return typeEntiteDTOResponseOutput;
+                    	}
+                     
                     }
                     if(typeEntiteDTO1.getCode().equals(typeEntiteDTO.getCode()))
                     {
-                        typeEntiteDTOResponseOutput.setCode("404");
-                        typeEntiteDTOResponseOutput.setStatut("ERROR");
-                        typeEntiteDTOResponseOutput.setMessage(" Ce code est déja utiliser pour cette societe ");
-                        return typeEntiteDTOResponseOutput;
+                        if(!wanted.getCode().equals(typeEntiteDTO.getCode())) {
+                        	typeEntiteDTOResponseOutput.setCode("404");
+                            typeEntiteDTOResponseOutput.setStatut("ERROR");
+                            typeEntiteDTOResponseOutput.setMessage(" Ce code est déja utiliser pour cette societe ");
+                            return typeEntiteDTOResponseOutput;
+                        }
+
+                        
                     }
                 }
             }
@@ -1359,7 +1416,7 @@ public class IHabilitationImpl implements IHabilitation {
 	        return typeEntiteDTOResponseOutput;
 
 	    }
-    
+   
 	 
     @Override
     public ResponseOutput<TypeEntiteDTO> searchTypeEntiteByID(Long id, Long societe) {
@@ -1467,6 +1524,8 @@ public class IHabilitationImpl implements IHabilitation {
         {
             // same object
             EntiteDTO wanted = entiteConverter.toVo(entiteRepository.findById(entiteID).get());
+            entiteDTO.setCreatedBy(wanted.getCreatedBy());
+            entiteDTO.setCreatedDate(wanted.getCreatedDate());
             if(wanted.getNom().equals(entiteDTO.getNom()) &&
                     wanted.getCode().equals(entiteDTO.getCode()) &&
                     wanted.getLocaliteDTO().getId()==entiteDTO.getLocaliteDTO().getId() &&
@@ -1659,12 +1718,144 @@ public class IHabilitationImpl implements IHabilitation {
 	    }
     @Override
     public ResponseOutput<MenuDTO> persist(MenuDTO menuDTO) {
-        return null;
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	menuDTO.setCreatedBy(authentication.getName());
+    	menuDTO.setCreatedDate(new Date());
+       	ResponseOutput <MenuDTO> menuDTOResponseOutput = new ResponseOutput<>();
+       	menuDTOResponseOutput.setTypeOperation("POST");
+           
+           for (MenuDTO menuDTO1  : menuConverter.toVoList(menuRepository.findAll()))
+           {
+               if (menuDTO1.getMenuPereDTO()!=null  && menuDTO.getMenuPereDTO()!=null && menuDTO1.getApplicationDTO().getId()-menuDTO.getApplicationDTO().getId()==0) 
+               	
+               {
+                   if (menuDTO1.getMenuPereDTO().getId()-menuDTO.getMenuPereDTO().getId()==0) {
+                	   
+                	   if(menuDTO1.getNom().equals(menuDTO.getNom()))
+                       {
+                       	
+                    	   menuDTOResponseOutput.setCode("404");
+                    	   menuDTOResponseOutput.setStatut("ERROR");
+                    	   menuDTOResponseOutput.setMessage(" Ce nom est déja utiliser dans  ce menu ");
+                        return menuDTOResponseOutput;
+                       }
+                       if(menuDTO1.getOrdre()-menuDTO.getOrdre()==0)
+                       {
+                    	   menuDTOResponseOutput.setCode("404");
+                    	   menuDTOResponseOutput.setStatut("ERROR");
+                    	   menuDTOResponseOutput.setMessage(" on peut pas ajouter ce menu ");
+                           return menuDTOResponseOutput;
+                       }
+                   } 
+                   
+                  
+               }
+               	if(menuDTO1.getMenuPereDTO()==null  && menuDTO.getMenuPereDTO()==null && menuDTO1.getApplicationDTO().getId()-menuDTO.getApplicationDTO().getId()==0){
+               		if(menuDTO1.getNom().equals(menuDTO.getNom()))
+                    {
+                    	
+                 	   menuDTOResponseOutput.setCode("404");
+                 	   menuDTOResponseOutput.setStatut("ERROR");
+                 	   menuDTOResponseOutput.setMessage(" Ce nom est déja utiliser dans  ce menu ");
+                     return menuDTOResponseOutput;
+                    }
+                    if(menuDTO1.getOrdre()-menuDTO.getOrdre()==0)
+                    {
+                 	   menuDTOResponseOutput.setCode("404");
+                 	   menuDTOResponseOutput.setStatut("ERROR");
+                 	   menuDTOResponseOutput.setMessage(" on peut pas ajouter ce menu ");
+                        return menuDTOResponseOutput;
+                    }
+               }
+           }
+
+
+           menuRepository.save(menuConverter.toBo(menuDTO));
+           menuDTOResponseOutput.setCode("200");
+           menuDTOResponseOutput.setStatut("SUCCESS");
+           menuDTOResponseOutput.setMessage("Enregistrement Effectué ! ");
+           return menuDTOResponseOutput;
     }
 
     @Override
     public ResponseOutput<MenuDTO> update(MenuID menuID, MenuDTO menuDTO) {
-        return null;
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	menuDTO.setLastModifiedBy(authentication.getName());
+    	menuDTO.setLastModifedDate(new Date());
+    	ResponseOutput <MenuDTO> menuDTOResponseOutput = new ResponseOutput<>();
+    	menuDTOResponseOutput.setTypeOperation("PATCH");
+        // SAME OBJECT
+        if(menuRepository.existsById(menuID))
+        {
+            // same object
+            MenuDTO wanted = menuConverter.toVo(menuRepository.findById(menuID).get());
+            menuDTO.setCreatedBy(wanted.getCreatedBy());
+            menuDTO.setCreatedDate(wanted.getCreatedDate());
+            
+            for (MenuDTO menuDTO1  : menuConverter.toVoList(menuRepository.findAll()))
+            {
+                if (menuDTO1.getMenuPereDTO()!=null  && menuDTO.getMenuPereDTO()!=null && menuDTO1.getApplicationDTO().getId()-menuDTO.getApplicationDTO().getId()==0)  
+                	
+                {
+                	if(menuDTO1.getMenuPereDTO().getId()-menuDTO.getMenuPereDTO().getId()==0)  {
+                		if(menuDTO1.getNom().equals(menuDTO.getNom()))
+                        {
+                        	
+                        	menuDTOResponseOutput.setCode("404");
+                        	menuDTOResponseOutput.setStatut("ERROR");
+                        	menuDTOResponseOutput.setMessage(" Ce nom est déja utiliser pour ce menu ");
+                         return menuDTOResponseOutput;
+                        }
+                        if(menuDTO1.getOrdre()-menuDTO.getOrdre()==0)
+                        {
+                        	menuDTOResponseOutput.setCode("404");
+                        	menuDTOResponseOutput.setStatut("ERROR");
+                        	menuDTOResponseOutput.setMessage(" Cette ordre est déja utiliser pour ce menu ");
+                            return menuDTOResponseOutput;
+                        }
+                	}
+                    
+                }
+                	if (menuDTO1.getMenuPereDTO()==null  && menuDTO.getMenuPereDTO()==null && menuDTO1.getApplicationDTO().getId()-menuDTO.getApplicationDTO().getId()==0)  
+                	
+	                {
+	                	if(menuDTO1.getMenuPereDTO().getId()-menuDTO.getMenuPereDTO().getId()==0)  {
+	                		if(menuDTO1.getNom().equals(menuDTO.getNom()))
+	                        {
+	                        	
+	                        	menuDTOResponseOutput.setCode("404");
+	                        	menuDTOResponseOutput.setStatut("ERROR");
+	                        	menuDTOResponseOutput.setMessage(" Ce nom est déja utiliser pour ce menu ");
+	                         return menuDTOResponseOutput;
+	                        }
+	                        if(menuDTO1.getOrdre()-menuDTO.getOrdre()==0)
+	                        {
+	                        	menuDTOResponseOutput.setCode("404");
+	                        	menuDTOResponseOutput.setStatut("ERROR");
+	                        	menuDTOResponseOutput.setMessage(" Cette ordre est déja utiliser pour ce menu ");
+	                            return menuDTOResponseOutput;
+	                        }
+	                	}
+	                    
+	                }
+                
+            }
+
+            menuDTO.setId(menuID.getId());
+            menuDTO.setApplicationDTO(applicationConverter.toVo(applicationRepository.findById(menuID.getApplication()).get()));
+            menuRepository.save(menuConverter.toBo(menuDTO));
+            menuDTOResponseOutput.setCode("200");
+            menuDTOResponseOutput.setStatut("SUCCES");
+            menuDTOResponseOutput.setMessage(" Entité modifié ");
+
+        }
+        else
+        {
+        	menuDTOResponseOutput.setCode("500");
+        	menuDTOResponseOutput.setStatut("NOT FOUND");
+        	menuDTOResponseOutput.setMessage(" Le type d'entité rechercher est introuvable");
+        }
+       return menuDTOResponseOutput;
     }
 
     @Override
@@ -1706,8 +1897,203 @@ public class IHabilitationImpl implements IHabilitation {
     public ResponseOutput<MenuDTO> getAllMenusSortBy(String fieldName) {
         return null;
     }
+    
+    @Override
+    public ResponseOutput<MenuDTO> getAllMenus() {
+    	ResponseOutput <MenuDTO> menuDTOResponseOutput = new ResponseOutput<>();
+    	menuDTOResponseOutput.setTypeOperation("GET");
+        List<MenuDTO> menuDTO = menuConverter.toVoList(menuRepository.findAll());
+        if( menuDTO.size() !=0 )
+        {
+        	menuDTOResponseOutput.setCode("200");
+        	menuDTOResponseOutput.setStatut("SUCCES");
+        	menuDTOResponseOutput.setMessage("Operation Effectué !");
+        	menuDTOResponseOutput.setCollection(menuDTO);
 
+        }
+        else
+        {
+        	menuDTOResponseOutput.setCode("500");
+        	menuDTOResponseOutput.setStatut("NOT FOUND");
+        	menuDTOResponseOutput.setMessage("Operation Effectué !");
+        }
+        return menuDTOResponseOutput;
+    }
+    
+    @Override
+	public ResponseOutput <MenuDTO> getAllParSocieteMenus (Long id){
+//    	SocieteDTO societeDTO = societeConverter.toVo(societeRepository.findById(id).get());
+//        ResponseOutput <MenuDTO> MenuDTOResponseOutput = new ResponseOutput<>();
+////        MenuDTOResponseOutput.setTypeOperation("GET");
+////
+////        MenuDTOResponseOutput.setCollection(menuConverter.toVoList(menuRepository.findBySociete(societeConverter.toBo(societeDTO))));
+//        return MenuDTOResponseOutput;
+
+        SocieteDTO societeDTO = societeConverter.toVo(societeRepository.findById(id).get());
+        ResponseOutput <MenuDTO> menuDTOResponseOutput = new ResponseOutput<>();
+        List  <MenuDTO> menu =new ArrayList();
+        List  <MenuDTO> menu1 =new ArrayList();
+        menuDTOResponseOutput.setTypeOperation("GET");
+//        menuDTOResponseOutput.setCollection(menuConverter.toVoList(menuRepository.findByApplication(applicationRepository.findBySociete(societeConverter.toBo(societeDTO)))));
+        List<ApplicationDTO> applicationDTO =applicationConverter.toVoList(applicationRepository.findBySociete(societeConverter.toBo(societeDTO)));
+        for (ApplicationDTO applicationDTO1  : applicationDTO) {
+        menu=menuConverter.toVoList(menuRepository.findByApplication(applicationConverter.toBo(applicationDTO1)));
+	        for(MenuDTO menuu : menu) {
+	            menu1.add(menuu);
 	
+	        }
+        }
+        menuDTOResponseOutput.setCollection(menu1);
+
+        return menuDTOResponseOutput;
+    }
+    
+    
+    @Override
+   	public ResponseOutput<MenuDTO> getMenuById(Long id) {
+   	    	ResponseOutput <MenuDTO> MenuDTOResponseOutput = new ResponseOutput<>();
+   	    	MenuDTOResponseOutput.setTypeOperation("GET");
+   	    	MenuDTOResponseOutput.setData(menuConverter.toVo(menuRepository.findById(id)));
+   	        return MenuDTOResponseOutput;
+   	    }
+
+    @Override
+   	public String ctrlMenu(MenuDTO menuDTO) {
+//       	if(menuRepository.existsByNom(menuDTO.getNom())&&applicationRepository.existsBySociete(menuDTO.getApplicationDTO().getSocieteDTO().getId())) return "L'entite est déjà saisie dans la base de données";
+           return null;
+   	}
+
+	@Override
+	public ResponseOutput<ProfilMenuDTO> persist(ProfilMenuDTO profilMenuDT) {
+		 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		 ;
+        ResponseOutput <ProfilMenuDTO> profilMenuDTOResponseOutput = new ResponseOutput<>();
+        profilMenuDTOResponseOutput.setTypeOperation("POST");
+        ProfilMenu profilMenuDTO= profilMenuConverter.toBo(profilMenuDT);
+        Date dateDebut=profilMenuDTO.getDateDebut();
+        Date dateFin=profilMenuDTO.getDateFin();
+        Long profilid=profilMenuDTO.getProfil().getId();
+        Long societeeid=profilMenuDTO.getProfil().getSociete().getId();
+        Long applicationid=profilMenuDTO.getMenu().getApplication().getId();
+        Long societeid=profilMenuDTO.getProfil().getSociete().getId();
+        Long menuid=profilMenuDTO.getMenu().getId();
+ 
+        profilMenuRepository.insertUser( dateDebut,dateFin,  profilid ,  societeeid , applicationid , societeid , menuid );
+
+        profilMenuDTOResponseOutput.setCode("200");
+        profilMenuDTOResponseOutput.setStatut("SUCCESS");
+        profilMenuDTOResponseOutput.setMessage("Enregistrement Effectué ! ");
+        return profilMenuDTOResponseOutput;
+	}
+
+	@Override
+	public ResponseOutput<ProfilMenu> persist(ProfilMenu profilMenuDTO) {
+		 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		 
+        ResponseOutput <ProfilMenu> profilMenuDTOResponseOutput = new ResponseOutput<>();
+        profilMenuDTOResponseOutput.setTypeOperation("POST");
+        
+        profilMenuDTOResponseOutput.setCode("200");
+        profilMenuDTOResponseOutput.setStatut("SUCCESS");
+        profilMenuDTOResponseOutput.setMessage("Enregistrement Effectué ! ");
+        return profilMenuDTOResponseOutput;
+	}
+	
+	@Override
+	public ResponseOutput<ProfilMenuDTO> update(ProfilMenuID profilMenuID, ProfilMenuDTO menuDTO) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ResponseOutput<ProfilMenuDTO> deleteMenu(ProfilMenuID profilMenuID) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ResponseOutput<ProfilMenuDTO> getAllParSocietProfilMenu(Long id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ResponseOutput<ProfilMenuDTO> getAllProfilMenu() {
+		ResponseOutput <ProfilMenuDTO> societeDTOResponseOutput = new ResponseOutput<>();
+        societeDTOResponseOutput.setTypeOperation("GET");
+        List<ProfilMenuDTO> ProfilMenu = profilMenuConverter.toVoList(profilMenuRepository.findAll());
+        
+        if( ProfilMenu.size() !=0 )
+        {
+            societeDTOResponseOutput.setCode("200");
+            societeDTOResponseOutput.setStatut("SUCCES");
+            societeDTOResponseOutput.setMessage("Operation Effectué !");
+            societeDTOResponseOutput.setCollection(ProfilMenu);
+
+        }
+        else
+        {
+            societeDTOResponseOutput.setCode("500");
+            societeDTOResponseOutput.setStatut("NOT FOUND");
+            societeDTOResponseOutput.setMessage("Operation Effectué !");
+        }
+        return societeDTOResponseOutput;
+    }
+	
+	
+	
+	@Override
+	public ResponseOutput<ProfilMenu> getAllProfilMen() {
+		ResponseOutput <ProfilMenu> societeDTOResponseOutput = new ResponseOutput<>();
+        societeDTOResponseOutput.setTypeOperation("GET");
+        List<ProfilMenu> ProfilMenu = profilMenuRepository.findAll();
+        
+        if( ProfilMenu.size() !=0 )
+        {
+            societeDTOResponseOutput.setCode("200");
+            societeDTOResponseOutput.setStatut("SUCCES");
+            societeDTOResponseOutput.setMessage("Operation Effectué !");
+            societeDTOResponseOutput.setCollection(ProfilMenu);
+
+        }
+        else
+        {
+            societeDTOResponseOutput.setCode("500");
+            societeDTOResponseOutput.setStatut("NOT FOUND");
+            societeDTOResponseOutput.setMessage("Operation Effectué !");
+        }
+        return societeDTOResponseOutput;
+    }
+       
+	@Override
+	public ResponseOutput<ProfilMenu> getAllProfilMenParSociete(Long id) {
+		ResponseOutput <ProfilMenu> societeDTOResponseOutput = new ResponseOutput<>();
+        societeDTOResponseOutput.setTypeOperation("GET");
+        List<ProfilMenu> ProfilMenu = profilMenuRepository.findAll();
+        List<ProfilMenu> profilMenu2=new ArrayList();
+        if( ProfilMenu.size() !=0 )
+        {
+            societeDTOResponseOutput.setCode("200");
+            societeDTOResponseOutput.setStatut("SUCCES");
+            societeDTOResponseOutput.setMessage("Operation Effectué !");
+            for(ProfilMenu profillMenu :ProfilMenu) {
+            	if(profillMenu.getProfil().getSociete().getId()-id==0) {
+            		profilMenu2.add(profillMenu);
+            	}
+            }
+            societeDTOResponseOutput.setCollection(profilMenu2);
+
+        }
+        else
+        {
+            societeDTOResponseOutput.setCode("500");
+            societeDTOResponseOutput.setStatut("NOT FOUND");
+            societeDTOResponseOutput.setMessage("Operation Effectué !");
+        }
+        return societeDTOResponseOutput;
+    }
+       
+    /*==========================================================================*/
 
 	 
 }
